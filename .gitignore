@@ -1,0 +1,17 @@
+# Python files
+__pycache__
+venv
+
+# IDE files
+.idea
+
+# Environment files
+*.env
+
+# Data
+/data
+*.db
+
+# Log
+/log
+*.log
