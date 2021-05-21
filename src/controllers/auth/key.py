@@ -1,16 +1,16 @@
-from flask import request
 import datetime
 from ...models import AuthorizationKey
-from ...middlewares import extract_request
+from ...middlewares import format_body
 from ...responces import server_error
 from ...config.database import Session
 from ...config import DEBUG
 
 
-@extract_request.body_json(request)
-@extract_request.check_body(['key_id', 'key'])
-def regenerate_key_ctrl(body):
+@format_body.body_json
+@format_body.check_body(['key_id', 'key'])
+def regenerate_key_ctrl(**data):
     try:
+        body = data.get('body')
         date = datetime.datetime.now()
         session = Session()
         authorization_key = session.query(AuthorizationKey)\

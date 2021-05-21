@@ -5,6 +5,9 @@ load_dotenv()
 
 DEBUG = getenv('DEBUG') == 'True'
 
+JWT_ALGORITHM = 'HS256'
+JWT_KEY = getenv('JWT_KEY')
+
 APP_ENV = 'production'
 
 if getenv('APP_ENV') == 'development':

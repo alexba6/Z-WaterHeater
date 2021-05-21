@@ -1,8 +1,7 @@
-import random
-import string
 from sqlalchemy import Column, Integer, String, Text, ForeignKey, DATETIME
 
 from .base_entity import BaseEntity
+from ..tools import random_key
 
 
 class AuthorizationKey(BaseEntity):
@@ -20,7 +19,6 @@ class AuthorizationKey(BaseEntity):
         return self.key == key
 
     def generate_key(self, length=250):
-        table = string.ascii_uppercase + string.ascii_lowercase + string.digits + '*-?:!§$'
-        key = ''.join(random.choice(table) for i in range(length))
+        key = random_key.generate_key(length)
         self.key = key
         return key

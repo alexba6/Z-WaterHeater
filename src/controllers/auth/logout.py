@@ -1,15 +1,15 @@
-from flask import request
 from ...config import DEBUG
 from ...config.database import Session
 from ...models import AuthorizationKey
 from ...responces import server_error
-from ...middlewares import extract_request
+from ...middlewares import format_body
 
 
-@extract_request.body_json(request)
-@extract_request.check_body(['key_id', 'key'])
-def logout_ctrl(body):
+@format_body.body_json
+@format_body.check_body(['key_id', 'key'])
+def logout_ctrl(**data):
     try:
+        body = data.get('body')
         session = Session()
         authorization_key = session.query(AuthorizationKey) \
             .filter(AuthorizationKey.id == body['key_id']) \
@@ -33,3 +33,5 @@ def logout_ctrl(body):
         if DEBUG or 1:
             print(error)
         return server_error.internal_server_error()
+
+
