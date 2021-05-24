@@ -1,5 +1,5 @@
 from flask import Blueprint
-from ..controllers.token import code
+from src.http.controllers.token import code
 
 tokenRouter = Blueprint('token', __name__, url_prefix='/api/token')
 

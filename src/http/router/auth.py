@@ -1,5 +1,5 @@
 from flask import Blueprint
-from ..controllers.auth import login, key, logout
+from src.http.controllers.auth import login, logout, key
 
 authRouter = Blueprint('auth', __name__, url_prefix='/api/auth')
 

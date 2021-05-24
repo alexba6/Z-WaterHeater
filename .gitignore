@@ -10,6 +10,7 @@ venv
 
 # Data
 /data
+/meta
 *.db
 
 # Log

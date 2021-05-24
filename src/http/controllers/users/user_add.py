@@ -1,21 +1,22 @@
 from sqlalchemy import or_
-from ...models import User
-from ...models.User import READER, WRITER, ADMIN
-from ...config.database import Session
-from ...config import DEBUG
-from ...responces import server_error
-from ...middlewares import format_body, token, auth
+from flask import jsonify
+from src.models import User
+from src.models.User import READER, WRITER, ADMIN
+from src.config.database import Session
+from src.config import DEBUG
+from src.http.responces import server_error
+from src.http.middlewares import auth, format_body, token
 
 
 def user_created_response(user):
-    return {
+    return jsonify({
         'user': {
             'id': user.id,
             'email': user.email,
             'username': user.username,
             'role': user.role
         }
-    }, 201
+    }), 201
 
 
 @format_body.body_json
@@ -30,13 +31,13 @@ def add_user_ctrl(**data):
             .filter(or_(User.email == body['email'])) \
             .first()
         if find_user:
-            return {
+            return jsonify({
                'error': 'Email already taken !'
-            }, 400
+            }), 400
         if body['role'] != READER and body['role'] != WRITER:
-            return {
+            return jsonify({
                'error': 'Invalid role !'
-            }, 400
+            }), 400
         user = User(
             body['email'],
             body['username'],
@@ -74,9 +75,9 @@ def add_user_admin_ctrl(**data):
             session.commit()
             return user_created_response(user)
         else:
-            return {
+            return jsonify({
                 'error': 'Admin user already registered !'
-            }, 400
+            }), 400
 
     except Exception as error:
         if DEBUG or 1:

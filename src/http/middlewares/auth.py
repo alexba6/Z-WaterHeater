@@ -1,9 +1,9 @@
-from flask import request
+from flask import request, jsonify
 
-from ..models import AuthorizationKey, User
-from ..models.User import ADMIN
-from ..config.database import Session
-from ..responces import server_error
+from src.models import AuthorizationKey, User
+from src.models.User import ADMIN
+from src.config.database import Session
+from src.http.responces import server_error
 
 
 def check_user_key(function):
@@ -20,13 +20,13 @@ def check_user_key(function):
                     kwargs['user_id'] = key_db.user_id
                     return function(**kwargs)
                 else:
-                    return {
+                    return jsonify({
                        'error': 'Key is not valid'
-                    }, 400
+                    }), 400
             else:
-                return {
+                return jsonify({
                     'error': 'Unable to find the user authentication key'
-                }, 404
+                }), 404
         except Exception as error:
             print(error)
             return server_error.internal_server_error()
@@ -43,17 +43,16 @@ def check_role(role):
                     .filter(User.id == user_id) \
                     .first()
                 if user:
-                    print(user.role, role, user.role == role or user.role == ADMIN)
                     if user.role == role or user.role == ADMIN:
                         return function(**kwargs)
                     else:
-                        return {
+                        return jsonify({
                             'error': 'Your are not allowed !'
-                        }, 400
+                        }), 400
                 else:
-                    return {
+                    return jsonify({
                         'error': 'User not found !'
-                    }, 400
+                    }), 400
             except:
                 return server_error.internal_server_error()
             return

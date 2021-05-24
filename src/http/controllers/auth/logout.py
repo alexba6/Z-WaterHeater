@@ -1,8 +1,9 @@
-from ...config import DEBUG
-from ...config.database import Session
-from ...models import AuthorizationKey
-from ...responces import server_error
-from ...middlewares import format_body
+from flask import jsonify
+from src.config import DEBUG
+from src.config.database import Session
+from src.models import AuthorizationKey
+from src.http.responces import server_error
+from src.http.middlewares import format_body
 
 
 @format_body.body_json
@@ -18,17 +19,17 @@ def logout_ctrl(**data):
             if authorization_key.key == body['key']:
                 session.delete(authorization_key)
                 session.commit()
-                return {
+                return jsonify({
                     'message': 'Logout successfully !'
-                }, 200
+                }), 200
             else:
-                return {
-                    'error': 'Invalid key !'
-                }, 400
+                return jsonify({
+                    'error': 'KEY_INVALID'
+                }), 400
         else:
-            return {
-                'error': 'Key not found !'
-            }, 404
+            return jsonify({
+                'error': 'KEY_NOT_FOUND'
+            }), 404
     except Exception as error:
         if DEBUG or 1:
             print(error)

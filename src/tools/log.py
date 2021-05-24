@@ -12,7 +12,7 @@ class _Log:
         log_path = path.join(_LOG_DIR, f"{self._log_type}.log")
         with open(log_path, 'a', encoding='utf-8') as log_file:
             date = datetime.datetime.now().strftime("%m-%d-%Y %H:%M:%S")
-            log_file.write(f"[{date}] - {msg}")
+            log_file.write(f"[{date}] - {msg}\n")
 
 
 if not path.exists(_LOG_DIR):

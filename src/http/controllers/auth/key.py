@@ -1,9 +1,10 @@
 import datetime
-from ...models import AuthorizationKey
-from ...middlewares import format_body
-from ...responces import server_error
-from ...config.database import Session
-from ...config import DEBUG
+from flask import jsonify
+from src.models import AuthorizationKey
+from src.http.middlewares import format_body
+from src.http.responces import server_error
+from src.config.database import Session
+from src.config import DEBUG
 
 
 @format_body.body_json
@@ -21,18 +22,18 @@ def regenerate_key_ctrl(**data):
                 authorization_key.last_generated = date
                 key = authorization_key.generate_key()
                 session.commit()
-                return {
+                return jsonify({
                     'key_id': authorization_key.id,
                     'new_key': key
-                }, 200
+                }), 200
             else:
-                return {
-                    'error': 'Invalid authorization key !'
-                }, 400
+                return jsonify({
+                    'error': 'KEY_INVALID'
+                }), 400
         else:
-            return {
-                'error': 'Key not found !'
-            }, 404
+            return jsonify({
+                'error': 'KEY_NOT_FOUND'
+            }), 404
     except Exception as error:
         if DEBUG:
             print(error)

@@ -1,10 +1,11 @@
 import datetime
 import jwt
+from flask import jsonify
 
-from ...responces import server_error
-from ...config import DEBUG, JWT_ALGORITHM, JWT_KEY
-from ...tools.verification_code import code_generator, VALID_CODE, EXPIRED_CODE, INVALID_CODE
-from ...middlewares import format_body
+from src.http.responces import server_error
+from src.config import DEBUG, JWT_ALGORITHM, JWT_KEY
+from src.tools.verification_code import code_generator, VALID_CODE, EXPIRED_CODE, INVALID_CODE
+from src.http.middlewares import format_body
 
 
 def generate_code_ctrl():
@@ -12,14 +13,14 @@ def generate_code_ctrl():
         if code_generator.code_expire():
             valid_time = 30
             code_generator.start_code(valid_time)
-            return {
+            return jsonify({
                 'message': 'Code generated !',
                 'valid_time': valid_time
-            }, 200
+            }), 200
         else:
-            return {
+            return jsonify({
                 'error': 'There is already code !'
-            }, 400
+            }), 400
     except Exception as error:
         if DEBUG or 1:
             print(error)
@@ -33,23 +34,23 @@ def check_code(body):
         code = body['code']
         status = code_generator.verify_code(code)
         if status == EXPIRED_CODE:
-            return {
+            return jsonify({
                 'error': 'Code has expired !'
-            }, 400
+            }), 400
         elif status == INVALID_CODE:
-            return {
+            return jsonify({
                 'error': 'Code is not valid !'
-            }, 400
+            }), 400
         elif status == VALID_CODE:
             valid_time = 60*20
             token = jwt.encode({
                 'expiration': (datetime.datetime.now() + datetime.timedelta(seconds=valid_time)).isoformat()
             }, JWT_KEY, JWT_ALGORITHM)
-            return {
+            return jsonify({
                 'message': 'Verification ok',
                 'token': token,
                 'valid_time': valid_time
-            }, 200
+            }), 200
     except Exception as error:
         if DEBUG or 1:
             print(error)

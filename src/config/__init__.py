@@ -3,14 +3,17 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+DEV, PROD, TEST = 'development', 'production', 'test'
+
+
 DEBUG = getenv('DEBUG') == 'True'
 
 JWT_ALGORITHM = 'HS256'
 JWT_KEY = getenv('JWT_KEY')
 
-APP_ENV = 'production'
+APP_ENV = getenv('APP_ENV')
 
-if getenv('APP_ENV') == 'development':
-    APP_ENV = 'development'
-elif getenv('APP_ENV') == 'test':
-    APP_ENV = 'test'
+if APP_ENV not in [DEV, PROD, TEST]:
+    APP_ENV = PROD
+
+print(f'> Mode {APP_ENV}')

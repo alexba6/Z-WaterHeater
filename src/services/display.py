@@ -13,3 +13,6 @@ class Display:
 
     def display_code(self, code):
         print(f"Code is : {code}")
+
+
+display = Display()

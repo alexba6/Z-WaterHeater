@@ -1,10 +1,10 @@
-from flask import request
+from flask import request, jsonify
 import datetime
-from ...middlewares import format_body
-from ...responces import server_error
-from ...models import User, AuthorizationKey
-from ...config.database import Session
-from ...config import DEBUG
+from src.http.middlewares import format_body
+from src.http.responces import server_error
+from src.models import User, AuthorizationKey
+from src.config.database import Session
+from src.config import DEBUG
 
 
 @format_body.body_json
@@ -30,24 +30,23 @@ def login_ctrl(**data):
                 authorization_key.last_generated = date
                 key = authorization_key.generate_key()
 
-
                 session.add(authorization_key)
 
                 session.commit()
 
-                return {
-                   'key_id': authorization_key.id,
-                   'key': key
-                }, 200
+                return jsonify({
+                    'key_id': authorization_key.id,
+                    'key': key
+                }), 200
 
             else:
-                return {
+                return jsonify({
                     'error': 'Bad credential !'
-                }, 400
+                }), 401
         else:
-            return {
-               'error': 'User not found !'
-            }, 404
+            return jsonify({
+                'error': 'Bad credential !'
+            }), 401
     except Exception as error:
         if DEBUG or 1:
             print(error)
