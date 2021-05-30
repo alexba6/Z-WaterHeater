@@ -1,8 +1,10 @@
 import datetime
-from flask import request, jsonify
+from flask import request
 import jwt
 
-from src.config import JWT_KEY, JWT_ALGORITHM
+from ...config import JWT_KEY, JWT_ALGORITHM
+from ...tools.log import logger
+from ..middlewares.response import make_json_response
 
 
 def check_token(function):
@@ -10,10 +12,11 @@ def check_token(function):
         try:
             kwargs['token'] = jwt.decode(request.headers['Authorization'], JWT_KEY, JWT_ALGORITHM)
             return function(**kwargs)
-        except:
-            return jsonify({
+        except Exception as error:
+            logger.error(error)
+            return make_json_response({
                 'error': 'Invalid token !'
-            }), 498
+            }, 498)
     return wrapper
 
 
@@ -26,8 +29,9 @@ def check_token_date(function):
             if current_date > token_expiration:
                 raise Exception('Expire token')
             return function(**kwargs)
-        except:
-            return jsonify({
+        except Exception as error:
+            logger.error(error)
+            return make_json_response({
                 'error': 'Expired token !'
-            }), 498
+            }, 498)
     return wrapper

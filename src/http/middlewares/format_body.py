@@ -40,7 +40,7 @@ def check_body(allow_items_and=None, allow_items_or=None, or_min_length=1):
                 return jsonify({
                     'error': 'Body schema violation !',
                     'allow_items_and': allow_items_and,
-                    'allow_items_and': allow_items_or
+                    'allow_items_or': allow_items_or
                 }), 400
 
             kwargs['body'] = data

@@ -1,32 +1,31 @@
-from flask import jsonify
-
-from src.models.User import WRITER
-from src.http.middlewares import auth
-from src.config import DEBUG
-from src.http.responces import server_error
-from src.services import output
+from ....tools.log import logger
+from ....models.User import WRITER
+from ....services import output
+from ...middlewares import auth, response
+from ...responces import server_error
 
 
+@response.format_json
 @auth.check_user_key
 @auth.check_role(WRITER)
 def status_ctrl(**kwargs):
     try:
-        if output.group_manager.exist_groups(kwargs['group_name']):
+        current_group = output.group_manager.get_group_by('id', kwargs['group_id'])
+        if current_group:
             state = kwargs['state'].upper()
-            if state == 'ON' or state == 'OFF':
-                output.group_manager.switch_group(kwargs['group_name'], (True if state == 'ON' else False))
-                return jsonify({
+            if state in ['ON', 'OFF']:
+                output.group_manager.switch_group(current_group, state == 'ON')
+                return {
                     'message': 'Input ok !'
-                }), 200
+                }, 200
             else:
-                return jsonify({
+                return {
                     'error': 'State must be a ON or OFF !'
-                }), 400
+                }, 400
         else:
-            return jsonify({
+            return {
                 'error': 'Group does not exist !'
-            }), 404
+            }, 404
     except Exception as error:
-        if DEBUG or 1:
-            print(error)
+        logger.error(error)
         return server_error.internal_server_error()

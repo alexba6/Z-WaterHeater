@@ -1,6 +1,8 @@
 from os import path, mkdir
 import json
 
+from .log import logger
+
 METADATA_PATH = './meta'
 
 
@@ -13,8 +15,8 @@ class MetaData:
             try:
                 with open(self.path, 'r', encoding='utf-8') as file:
                     self._data_cache = json.load(file)
-            except:
-                pass
+            except Exception as error:
+                logger.error(error)
 
     @property
     def data(self):
@@ -25,10 +27,6 @@ class MetaData:
         with open(self.path, 'w', encoding='utf-8') as file:
             file.write(json.dumps(data))
         self._data_cache = data
-
-    def add_property(self, name, value):
-        self._data_cache[name] = value
-        self.data = self._data_cache
 
 
 if not path.exists(METADATA_PATH):

@@ -1,4 +1,5 @@
 from flask import request, jsonify
+import sqlalchemy
 
 from src.models import AuthorizationKey, User
 from src.models.User import ADMIN
@@ -39,9 +40,12 @@ def check_role(role):
             try:
                 session = Session()
                 user_id = kwargs.get('user_id')
-                user = session.query(User) \
-                    .filter(User.id == user_id) \
-                    .first()
+
+                user = session.execute(
+                    sqlalchemy.select(User).where(User.id == user_id)
+                ).scalar_one()
+
+
                 if user:
                     if user.role == role or user.role == ADMIN:
                         return function(**kwargs)
@@ -53,8 +57,8 @@ def check_role(role):
                     return jsonify({
                         'error': 'User not found !'
                     }), 400
-            except:
+            except Exception as e:
+                print(e)
                 return server_error.internal_server_error()
-            return
         return wrapper
     return decorator

@@ -1,13 +1,11 @@
-
-from flask import jsonify
-
-from ....config import DEBUG
+from ....tools.log import logger
 from ...responces import server_error
-from ...middlewares import format_body, auth
+from ...middlewares import format_body, auth, response
 from ....models.User import ADMIN
 from ....services.output import group_manager
 
 
+@response.format_json
 @format_body.body_json
 @auth.check_user_key
 @auth.check_role(ADMIN)
@@ -15,17 +13,16 @@ from ....services.output import group_manager
 def group_add_ctrl(**kwargs):
     try:
         body = kwargs['body']
-        if not group_manager.exist_groups(body['name']):
+        current_group = group_manager.get_group_by('name', body['name'])
+        if not current_group:
             group_manager.group_add(body['name'], body['outputs_name'])
-            return jsonify({
+            return {
                 'message': 'Groups added successfully !'
-            }), 201
+            }, 201
         else:
-            return jsonify({
+            return {
                 'error': 'NAME_TAKEN'
-            }), 400
+            }, 400
     except Exception as error:
-        if DEBUG or 1:
-            print(error)
+        logger.error(error)
         return server_error.internal_server_error()
-

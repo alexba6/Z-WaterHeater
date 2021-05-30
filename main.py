@@ -6,14 +6,13 @@ import src.models as models
 from src.http import api
 from src.config import DEBUG
 from src.services import display, output
-from src.tools.log import info_logger
+from src.tools.log import logger
 
 
 load_dotenv()
 
-
 if __name__ == '__main__':
-    info_logger.add('APP started !')
+    logger.info('app started')
     models.create_all_table()
 
     display.display.start()

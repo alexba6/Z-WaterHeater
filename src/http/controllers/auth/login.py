@@ -1,12 +1,14 @@
-from flask import request, jsonify
+from flask import request
 import datetime
-from src.http.middlewares import format_body
-from src.http.responces import server_error
-from src.models import User, AuthorizationKey
-from src.config.database import Session
-from src.config import DEBUG
+
+from ...middlewares import format_body, response
+from ...responces import server_error
+from ....models import User, AuthorizationKey
+from ....config.database import Session
+from ....tools.log import logger
 
 
+@response.format_json
 @format_body.body_json
 @format_body.check_body(['login', 'password'])
 def login_ctrl(**data):
@@ -34,20 +36,19 @@ def login_ctrl(**data):
 
                 session.commit()
 
-                return jsonify({
-                    'key_id': authorization_key.id,
+                return {
+                    'keyId': authorization_key.id,
                     'key': key
-                }), 200
+                }, 200
 
             else:
-                return jsonify({
-                    'error': 'Bad credential !'
-                }), 401
+                return {
+                    'error': 'BAD_CREDENTIALS'
+                }, 401
         else:
-            return jsonify({
-                'error': 'Bad credential !'
-            }), 401
+            return {
+                'error': 'BAD_CREDENTIALS'
+            }, 401
     except Exception as error:
-        if DEBUG or 1:
-            print(error)
+        logger.error(error)
         return server_error.internal_server_error()

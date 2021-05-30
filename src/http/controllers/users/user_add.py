@@ -1,11 +1,11 @@
 from sqlalchemy import or_
 from flask import jsonify
-from src.models import User
-from src.models.User import READER, WRITER, ADMIN
-from src.config.database import Session
-from src.config import DEBUG
-from src.http.responces import server_error
-from src.http.middlewares import auth, format_body, token
+
+from ....models.User import READER, WRITER, ADMIN, User
+from ....config.database import Session
+from ...middlewares import auth, format_body, token, response
+from ...responces import server_error
+from ....tools.log import logger
 
 
 def user_created_response(user):
@@ -19,6 +19,7 @@ def user_created_response(user):
     }), 201
 
 
+@response.format_json
 @format_body.body_json
 @auth.check_user_key
 @auth.check_role(ADMIN)
@@ -48,11 +49,11 @@ def add_user_ctrl(**data):
         session.commit()
         return user_created_response(user)
     except Exception as error:
-        if DEBUG or 1:
-            print(error)
+        logger.error(error)
         return server_error.internal_server_error()
 
 
+@response.format_json
 @format_body.body_json
 @token.check_token
 @token.check_token_date
@@ -80,6 +81,5 @@ def add_user_admin_ctrl(**data):
             }), 400
 
     except Exception as error:
-        if DEBUG or 1:
-            print(error)
+        logger.error(error)
     return server_error.internal_server_error()

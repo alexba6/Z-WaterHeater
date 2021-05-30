@@ -1,5 +1,5 @@
 from flask import Blueprint
-from src.http.controllers.users import user_add
+from ..controllers.users import user_add
 
 userRouter = Blueprint('user', __name__, url_prefix='/api/user')
 

@@ -5,7 +5,6 @@ load_dotenv()
 
 DEV, PROD, TEST = 'development', 'production', 'test'
 
-
 DEBUG = getenv('DEBUG') == 'True'
 
 JWT_ALGORITHM = 'HS256'
@@ -16,4 +15,4 @@ APP_ENV = getenv('APP_ENV')
 if APP_ENV not in [DEV, PROD, TEST]:
     APP_ENV = PROD
 
-print(f'> Mode {APP_ENV}')
+print(f'> App running in {APP_ENV}')
