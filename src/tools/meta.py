@@ -1,16 +1,16 @@
-from os import path, mkdir
+from os import path, makedirs
 import json
 
 from .log import logger
 
-METADATA_PATH = './meta'
+METADATA_PATH = './data/meta'
 
 
 class MetaData:
     def __init__(self, name):
         self.name = name
         self.path = path.join(METADATA_PATH, f"{name}.json")
-        self._data_cache = {}
+        self._data_cache = None
         if path.exists(self.path):
             try:
                 with open(self.path, 'r', encoding='utf-8') as file:
@@ -30,4 +30,4 @@ class MetaData:
 
 
 if not path.exists(METADATA_PATH):
-    mkdir(METADATA_PATH)
+    makedirs(METADATA_PATH, exist_ok=True)

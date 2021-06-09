@@ -2,27 +2,32 @@ from ....tools.log import logger
 from ...responces import server_error
 from ...middlewares import format_body, auth, response
 from ....models.User import ADMIN
+from ....models.OutputGroup import OutputGroup
 from ....services.output import group_manager
+from ....config.database import Session
 
 
 @response.format_json
 @format_body.body_json
 @auth.check_user_key
 @auth.check_role(ADMIN)
-@format_body.check_body(['name', 'outputs_name'])
+@format_body.check_body(['name', 'outputs_id'])
 def group_add_ctrl(**kwargs):
     try:
         body = kwargs['body']
-        current_group = group_manager.get_group_by('name', body['name'])
-        if not current_group:
-            group_manager.group_add(body['name'], body['outputs_name'])
+        with Session() as session:
+            group = OutputGroup()
+            group.name = body['name']
+            group.output = body['outputs_id']
+
+            session.add(group)
+            session.commit()
+            group_manager.load()
+
             return {
                 'message': 'Groups added successfully !'
             }, 201
-        else:
-            return {
-                'error': 'NAME_TAKEN'
-            }, 400
     except Exception as error:
+        print(error)
         logger.error(error)
         return server_error.internal_server_error()

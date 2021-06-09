@@ -1,5 +1,8 @@
 from .User import User
 from .AuthorizationKey import AuthorizationKey
+from .OutputGroup import OutputGroup
+from .TimeSlot import TimeSlot
+from . import *
 from ..config.database import engine
 from .base_entity import BaseEntity
 

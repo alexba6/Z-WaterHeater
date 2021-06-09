@@ -34,5 +34,4 @@ class User(BaseEntity):
 
     def verify_password(self, password):
         password = bytes(password, encoding='utf-8')
-        user_hash = bytes(self.password, encoding='utf-8')
-        return bcrypt.checkpw(password, user_hash)
+        return bcrypt.checkpw(password, self.password)

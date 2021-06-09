@@ -3,21 +3,26 @@ from os import getenv
 from dotenv import load_dotenv
 
 import src.models as models
-from src.http import api
+from src.api import apiHttp
 from src.config import DEBUG
-from src.services import display, output
+from src.services import display, output, operation_state, mail
 from src.tools.log import logger
 
 
 load_dotenv()
 
 if __name__ == '__main__':
+    mail.mail.load()
+
     logger.info('app started')
     models.create_all_table()
 
     display.display.start()
-    output.start()
 
-    api.run(port=getenv('API_PORT'), host=getenv('API_HOST'), debug=DEBUG)
+    output.group_manager.load()
+    output.group_manager.init()
 
+    operation_state.operation_sate.load()
+    operation_state.operation_sate.switchOn(3)
 
+    apiHttp.run(port=getenv('API_PORT'), host=getenv('API_HOST'), debug=DEBUG)

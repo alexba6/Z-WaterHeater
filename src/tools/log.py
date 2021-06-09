@@ -1,5 +1,5 @@
 from typing import List
-from os import path, mkdir
+from os import path, makedirs
 import datetime
 
 
@@ -11,7 +11,7 @@ class Logger:
 
     def start(self):
         if not path.exists(self.log_dir):
-            mkdir(self.log_dir)
+            makedirs(self.log_dir, exist_ok=True)
 
     def __getattr__(self, item):
         log_type = str(item).lower()
@@ -30,6 +30,6 @@ class Logger:
 
 
 logger = Logger(
-    './log',
+    './data/log',
     ['error', 'warning', 'info', 'auth']
 )
