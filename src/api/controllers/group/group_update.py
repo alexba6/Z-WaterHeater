@@ -3,7 +3,7 @@ from ....tools.log import logger
 from ...responces import server_error
 from ...middlewares import auth, format_body, response
 from ....models.User import ADMIN
-from ....services.output import group_manager
+from src.utils.output import group_manager
 from ....config.database import Session
 from ....models.OutputGroup import OutputGroup
 

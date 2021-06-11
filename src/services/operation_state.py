@@ -1,6 +1,6 @@
 import datetime
 import threading
-from .output import group_manager
+from src.utils.output import group_manager
 from .auto import AutoTimeSlot
 
 from ..tools.meta import MetaData

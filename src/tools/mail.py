@@ -1,6 +1,6 @@
 import smtplib, ssl
 
-from ..tools.meta import MetaData
+from src.tools.meta import MetaData
 
 
 class MailManager:
@@ -13,6 +13,8 @@ class MailManager:
         self._meta = MetaData(config_file)
 
         self._context = ssl.create_default_context()
+
+        self.load()
 
     def load(self):
         config = self._meta.data

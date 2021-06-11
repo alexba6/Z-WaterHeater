@@ -5,15 +5,14 @@ from dotenv import load_dotenv
 import src.models as models
 from src.api import apiHttp
 from src.config import DEBUG
-from src.services import display, output, operation_state, mail
+from src.services import operation_state
+from src.utils import display, output
 from src.tools.log import logger
 
 
 load_dotenv()
 
 if __name__ == '__main__':
-    mail.mail.load()
-
     logger.info('app started')
     models.create_all_table()
 

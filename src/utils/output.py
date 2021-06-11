@@ -1,8 +1,8 @@
 import sqlalchemy
 from typing import List
 from RPi import GPIO
-from ..config.database import Session
-from ..models.OutputGroup import OutputGroup
+from src.config.database import Session
+from src.models.OutputGroup import OutputGroup
 
 
 GPIO.setmode(GPIO.BOARD)
