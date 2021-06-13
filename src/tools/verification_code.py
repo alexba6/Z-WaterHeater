@@ -1,6 +1,8 @@
 import random
 import datetime
 
+from ..utils.display import display
+
 INVALID_CODE, EXPIRED_CODE, VALID_CODE = 'invalid', 'expire', 'ok'
 
 
@@ -15,7 +17,7 @@ class CodeGenerator:
         self.code = str(random.randint(10**(self.code_size - 1), 10**self.code_size))
         self.created_at = datetime.datetime.now()
         self.expiration_time = expiration_time
-        print(self.code)
+        display.printCode(self.code, self.expiration_time)
 
     def code_expire(self):
         if not self.created_at:

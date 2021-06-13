@@ -16,6 +16,7 @@ class MailManager:
 
         self.load()
 
+    # Load the SMTP configuration
     def load(self):
         config = self._meta.data
         if config is not None:
@@ -24,7 +25,8 @@ class MailManager:
             self._login = config.get('login')
             self._password = config.get('password')
 
-    def saveSMTPConfig(self, **kwargs):
+    # Save new SMTP configuration
+    def saveConfig(self, **kwargs):
         if kwargs.get('host'):
             self._host = kwargs['host']
         if kwargs.get('port'):
@@ -36,6 +38,17 @@ class MailManager:
 
         self.saveMeta()
 
+    # Get the SMTP configuration
+    def getConfig(self):
+        if self._meta.data is None:
+            return None
+        return {
+            'host': self._host,
+            'port': self._port,
+            'login': self._login
+        }
+
+    # Save the SMTP configuration in the meta
     def saveMeta(self):
         self._meta.data = {
             'host': self._host,
@@ -44,6 +57,7 @@ class MailManager:
             'password': self._password
         }
 
+    # Send a mail
     def send(self, mail_from, destination, content):
         with smtplib.SMTP(self._host, self._port) as server:
             server.ehlo()

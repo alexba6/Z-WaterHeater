@@ -1,12 +1,7 @@
-import sqlalchemy
 from typing import List
 from RPi import GPIO
 from src.config.database import Session
 from src.models.OutputGroup import OutputGroup
-
-
-GPIO.setmode(GPIO.BOARD)
-GPIO.setwarnings(False)
 
 
 # Manager a single output
@@ -15,12 +10,11 @@ class Output:
         self.pin = pin
         self.id = out_id
         self.__state = None
-        self.init()
-        self.state = False
 
     # Init the output on the board
     def init(self) -> None:
         GPIO.setup(self.pin, GPIO.OUT)
+        self.state = False
 
     # Get the current output state
     @property
@@ -40,10 +34,18 @@ class GroupManager:
     def __init__(self, outputs: List[Output]):
         self._outputs = outputs
         self._groups: List[OutputGroup] = []
-        self._current_group_id_on: str = None
+        self._current_group_id_on: str = ''
 
-    # Init the default groups if the database is empty
-    def init(self):
+        GPIO.setmode(GPIO.BCM)
+        GPIO.setwarnings(False)
+
+        for outputs in self._outputs:
+            outputs.init()
+
+    # Load the group from the database
+    def load(self):
+        with Session() as session:
+            self._groups = session.query(OutputGroup).all()
         if len(self._groups) == 0:
             with Session() as session:
                 for output in self._outputs:
@@ -53,17 +55,20 @@ class GroupManager:
                     session.add(group)
                 session.commit()
 
-    # Load the group from the database
-    def load(self):
-        with Session() as session:
-            self._groups = session.query(OutputGroup).all()
-
     # Find a group with his id
     def _findGroup(self, group_id: int) -> OutputGroup:
         for group in self._groups:
             if group.id == group_id:
                 return group
         raise Exception('Cannot find the group !')
+
+    # Find if the group exist
+    def groupExist(self, groupId: int) -> bool:
+        try:
+            self._findGroup(groupId)
+            return True
+        except:
+            return False
 
     # Find an output with her id
     def _findOutput(self, output_id) -> Output:
@@ -94,6 +99,6 @@ class GroupManager:
 
 
 group_manager = GroupManager([
-    Output(16, 'out 1'),
-    Output(18, 'out 2')
+    Output(20, 'out 1'),
+    Output(21, 'out 2')
 ])

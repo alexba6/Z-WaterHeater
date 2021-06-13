@@ -16,15 +16,13 @@ if __name__ == '__main__':
     logger.info('app started')
     models.create_all_table()
 
-    display.display.start()
+    display.display.init()
 
     output.group_manager.load()
-    output.group_manager.init()
 
     operation_state.operation_sate.load()
-    operation_state.operation_sate.switchOn(3)
 
-    temp.temp_manager.init()
+    temp.temp_manager.load()
 
     temp_chart.temp_chart.load()
 

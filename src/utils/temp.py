@@ -1,15 +1,16 @@
 from typing import List
 from w1thermsensor import AsyncW1ThermSensor, Unit, Sensor
-from ..tools.meta import MetaData
-from ..tools.log import logger
+
+from ..config.database import Session
+from ..models.TempSensor import TempSensor
 
 
 class ThermSensor:
-    def __init__(self, sensor_id: str, name: str = None):
-        self._sensor = AsyncW1ThermSensor(Sensor.DS18B20, sensor_id)
-        self.id = self._sensor.id
-        self._name = name
-        self._temp: float = None
+    def __init__(self, sensorId: str, name: str):
+        self._sensor = AsyncW1ThermSensor(Sensor.DS18B20, sensorId)
+        self.id = sensorId
+        self.name = name
+        self._temp: float = 0
 
     # Refresh and get the temperature from the sensor
     async def getTemp(self) -> float:
@@ -24,43 +25,33 @@ class ThermSensor:
     def getInfo(self):
         return {
             'id': self.id,
-            'name': self._name
+            'name': self.name
         }
-
-    @property
-    def name(self) -> str:
-        return self._name
-
-    @name.setter
-    def name(self, name: str):
-        assert type(name) is not str, 'The sensor name must be a string value !'
-        self._name = name
 
 
 class TempManager:
     def __init__(self):
-        self._meta = MetaData('temp-sensor')
         self._sensors: List[ThermSensor] = []
 
     # Init the temp sensors
-    def init(self):
-        if self._meta.data is None:
-            try:
-                for sensor in AsyncW1ThermSensor.get_available_sensors():
-                    self._sensors.append(ThermSensor(sensor.id, f'Sensor @{sensor.id}'))
-                self.saveMeta()
-            except Exception as error:
-                logger.error(error)
-        else:
-            for meta_sensor in self._meta.data:
+    def load(self):
+        with Session() as session:
+            for sensor in session.query(TempSensor).all():
                 self._sensors.append(ThermSensor(
-                    meta_sensor.get('id'),
-                    meta_sensor.get('name')
+                    sensor.sensor_id,
+                    sensor.name
                 ))
 
-    # Save the current temp sensor
-    def saveMeta(self):
-        self._meta.data = [sensor.getInfo() for sensor in self._sensors]
+        availableSensors = AsyncW1ThermSensor.get_available_sensors()
+        if len(self._sensors) == 0 and len(availableSensors) != 0:
+            with Session() as session:
+                for sensor in availableSensors:
+                    tSensor = TempSensor()
+                    tSensor.sensor_id = sensor.id
+                    tSensor.name = f'Sensor @{sensor.id}'
+                    session.add(tSensor)
+                session.commit()
+            self.load()
 
     # Find a sensor with his id
     def getSensorById(self, sensor_id) -> ThermSensor:
@@ -72,7 +63,6 @@ class TempManager:
     # Rename a sensor with his id
     def sensorRename(self, sensor_id: str, name: str):
         self.getSensorById(sensor_id).name = name
-        self.saveMeta()
 
     # Get the temperature from the sensor by id
     async def getTemp(self, sensorId: str) -> float:

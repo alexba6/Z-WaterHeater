@@ -39,7 +39,8 @@ def check_role(role):
         def wrapper(**kwargs):
             try:
                 with Session() as session:
-                    user_id = kwargs.get('user_id')
+                    key: AuthorizationKey = kwargs.get('key')
+                    user_id = key.user_id
 
                     user = session.execute(
                         sqlalchemy.select(User).where(User.id == user_id)
@@ -57,7 +58,6 @@ def check_role(role):
                             'error': 'User not found !'
                         }), 400
             except Exception as e:
-                print(e)
                 return server_error.internal_server_error()
         return wrapper
     return decorator

@@ -1,6 +1,9 @@
+from flask import request
+
 from ....tools.log import logger
 from ....models.User import WRITER
-from ....utils import output
+from ....services import operation_state
+from ....utils.output import group_manager
 from ...middlewares import auth, response
 from ...responces import server_error
 
@@ -8,27 +11,29 @@ from ...responces import server_error
 @response.format_json
 @auth.check_user_key
 @auth.check_role(WRITER)
-def manuel_on(**kwargs):
+def switchCtrl(**kwargs):
     try:
-        output.group_manager.switchOn(int(kwargs['group_id']))
+        state = kwargs.get('state').lower()
+        if state == 'on':
+            groupId = request.args.get('groupId')
+            if groupId is None or not group_manager.groupExist(int(groupId)):
+                return {
+                    'error': 'The group does not exist !'
+                }, 404
+            operation_state.operation_sate.switchOn(int(groupId))
+        elif state == 'off':
+            operation_state.operation_sate.switchOff()
+        elif state == 'auto':
+            operation_state.operation_sate.switchAuto()
+        else:
+            return {
+                'error': 'Unable to find the state',
+                'availableStates': ['on', 'off', 'auto']
+            }, 400
         return {
-            'message': 'Input ok !'
+            'message': 'OK'
         }, 200
     except Exception as error:
         print(error)
-        logger.error(error)
-        return server_error.internal_server_error()
-
-
-@response.format_json
-@auth.check_user_key
-@auth.check_role(WRITER)
-def manuel_off(**kwargs):
-    try:
-        output.group_manager.switchOff()
-        return {
-                   'message': 'Input ok !'
-               }, 200
-    except Exception as error:
         logger.error(error)
         return server_error.internal_server_error()

@@ -20,7 +20,7 @@ def check_body(allow_items_and=None, allow_items_or=None, or_min_length=1):
         def wrapper(**kwargs):
             body = kwargs.get('body')
             data = {}
-            error = False
+            andError = False
             or_length = 0
             if allow_items_and:
                 for allow_item_and in allow_items_and:
@@ -28,7 +28,8 @@ def check_body(allow_items_and=None, allow_items_or=None, or_min_length=1):
                     if body_item:
                         data[allow_item_and] = body[allow_item_and]
                     else:
-                        error = False
+                        andError = True
+                        break
             if allow_items_or:
                 for allow_item_or in allow_items_or:
                     body_item = body.get(allow_item_or)
@@ -36,12 +37,17 @@ def check_body(allow_items_and=None, allow_items_or=None, or_min_length=1):
                         data[allow_item_or] = body[allow_item_or]
                         or_length += 1
 
-            if error or (allow_items_or and or_length < or_min_length):
-                return jsonify({
+            if andError:
+                return {
                     'error': 'Body schema violation !',
                     'allow_items_and': allow_items_and,
+                }, 400
+
+            if allow_items_or and or_length < or_min_length:
+                return {
+                    'error': 'Body schema violation !',
                     'allow_items_or': allow_items_or
-                }), 400
+                }, 400
 
             kwargs['body'] = data
             return function(**kwargs)

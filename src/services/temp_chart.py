@@ -6,7 +6,6 @@ import datetime
 from ..utils.temp import temp_manager
 from ..tools.meta import MetaData
 
-
 DATA_DIR = './data/temp'
 
 
@@ -20,7 +19,7 @@ def _getDir(date: datetime.date = datetime.date.today()):
 
 
 # Get the CSV file path
-def _getPath(date:  datetime.date):
+def _getPath(date: datetime.date):
     return path.join(
         _getDir(date),
         f"temp-{str(date.strftime('%m-%d-%Y'))}.csv"
@@ -59,38 +58,58 @@ class TempChart:
     def __init__(self):
         self._dayTemp = []
         self._dayPath = None
+        self._refreshInterval = 120
         self._meta = MetaData('temp-chart')
-
         self._timer_temp = None
 
     # Load the configuration and start temp service
     def load(self):
         date = datetime.date.today()
-
         self._dayPath = _getPath(date)
-
         dayDir = _getDir(date)
         if not path.exists(dayDir):
             makedirs(dayDir)
-
         self._dayTemp = _readTempFile(date)
-
         if self._meta.data is None:
             self._meta.data = {
-                'refreshDelta': 20
+                'refreshInterval': self._refreshInterval
             }
+        else:
+            self._refreshInterval = self._meta.data.get('refreshInterval')
+        if self._timer_temp:
+            self._timer_temp.cancel()
         asyncio.run(self.saveTemps())
+
+    # Get the temp chart configuration
+    def getConfig(self):
+        if self._meta.data is None:
+            return None
+        return {
+            'refreshInterval': self._refreshInterval
+        }
+
+    # set the temp chart configuration
+    def saveConfig(self, **kwargs):
+        if kwargs.get('refreshInterval'):
+            self._refreshInterval = kwargs['refreshInterval']
+        self.saveMeta()
+        self.load()
+
+    # Save the temp chart meta
+    def saveMeta(self):
+        self._meta.data = {
+            'refreshInterval': self._refreshInterval
+        }
 
     # Save the temperature in CSV each x seconds
     async def saveTemps(self):
-
-        interval = self._meta.data.get('refreshDelta')
-
         self._timer_temp = threading.Timer(
-            interval if interval is int or float else 30,
+            self._refreshInterval,
             lambda: asyncio.run(self.saveTemps())
         )
         self._timer_temp.start()
+
+        print(f'{datetime.datetime.now().isoformat()} > SAVE TEMP {self._refreshInterval}')
 
         time = datetime.datetime.now().strftime('%H-%M-%S')
         temp = {
