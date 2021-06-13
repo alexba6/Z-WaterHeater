@@ -29,8 +29,11 @@ def _getPath(date:  datetime.date):
 
 # Read the temp data of CSV file
 def _readTempFile(date: datetime.date):
+    temp_path = _getPath(date)
+    if not path.exists(temp_path):
+        return []
     data = []
-    with open(_getPath(date), 'r', encoding='utf-8') as file:
+    with open(temp_path, 'r', encoding='utf-8') as file:
         for time, *temp in csv.reader(file):
             data.append({
                 'time': time,
@@ -58,31 +61,37 @@ class TempChart:
         self._dayPath = None
         self._meta = MetaData('temp-chart')
 
+        self._timer_temp = None
+
     # Load the configuration and start temp service
     def load(self):
         date = datetime.date.today()
 
         self._dayPath = _getPath(date)
 
-        if not path.exists(_getDir(date)):
-            makedirs(_getDir(date))
+        dayDir = _getDir(date)
+        if not path.exists(dayDir):
+            makedirs(dayDir)
+
+        self._dayTemp = _readTempFile(date)
 
         if self._meta.data is None:
             self._meta.data = {
                 'refreshDelta': 20
             }
-
-        for d in _readTempFile(date):
-            print(d)
-
         asyncio.run(self.saveTemps())
 
     # Save the temperature in CSV each x seconds
     async def saveTemps(self):
-        def startTimer():
-            asyncio.run(self.saveTemps())
-        refresh_delta = self._meta.data.get('refreshDelta')
-        threading.Timer(refresh_delta if refresh_delta is int or float else 30, startTimer).start()
+
+        interval = self._meta.data.get('refreshDelta')
+
+        self._timer_temp = threading.Timer(
+            interval if interval is int or float else 30,
+            lambda: asyncio.run(self.saveTemps())
+        )
+        self._timer_temp.start()
+
         time = datetime.datetime.now().strftime('%H-%M-%S')
         temp = {
             'time': time,
@@ -96,6 +105,12 @@ class TempChart:
         }
         self._dayTemp.append(temp)
         _writeTempFile(datetime.date.today(), temp)
+
+    # Read the temperature of one day from the cache if it is possible
+    def read(self, date: datetime.date = datetime.date.today()):
+        if date == datetime.date.today():
+            return self._dayTemp
+        return _readTempFile(date)
 
 
 temp_chart = TempChart()

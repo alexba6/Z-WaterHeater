@@ -47,7 +47,7 @@ class TempManager:
         if self._meta.data is None:
             try:
                 for sensor in AsyncW1ThermSensor.get_available_sensors():
-                    self._sensors.append(ThermSensor(sensor.id))
+                    self._sensors.append(ThermSensor(sensor.id, f'Sensor @{sensor.id}'))
                 self.saveMeta()
             except Exception as error:
                 logger.error(error)
@@ -77,6 +77,10 @@ class TempManager:
     # Get the temperature from the sensor by id
     async def getTemp(self, sensorId: str) -> float:
         return await self.getSensorById(sensorId).getTemp()
+
+    # Get sensor name
+    def getName(self, sensorId: str) -> str:
+        return self.getSensorById(sensorId).name
 
     # Get the temperature from the sensor cache by id
     def getTempCache(self, sensorId: str) -> float:

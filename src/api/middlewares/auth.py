@@ -18,16 +18,16 @@ def check_user_key(function):
                     .first()
                 if key_db:
                     if key_db.key == key:
-                        kwargs['user_id'] = key_db.user_id
+                        kwargs['key'] = key_db
                         return function(**kwargs)
                     else:
-                        return jsonify({
+                        return {
                            'error': 'Key is not valid'
-                        }), 400
+                        }, 400
                 else:
-                    return jsonify({
+                    return {
                         'error': 'Unable to find the user authentication key'
-                    }), 404
+                    }, 404
         except Exception as error:
             print(error)
             return server_error.internal_server_error()
