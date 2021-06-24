@@ -27,8 +27,7 @@ It's required to have python 3.8 or more  installed on your system.
 
 
 Fist set the environment variables in `.env` file :
-```dotenv
-
+```ini
 # Env mode
 APP_ENV = <app env mode>
 DEBUG = <run in debug>
