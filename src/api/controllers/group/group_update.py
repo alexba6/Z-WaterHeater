@@ -3,7 +3,7 @@ from ....tools.log import logger
 from ...responces import server_error
 from ...middlewares import auth, format_body, response
 from ....models.User import ADMIN
-from src.utils.output import group_manager
+from src.utils.output import groupManager
 from ....config.database import Session
 from ....models.OutputGroup import OutputGroup
 
@@ -30,7 +30,7 @@ def group_update_ctrl(**kwargs):
                     group.output = body['outputs_id']
                 session.add(group)
                 session.commit()
-                group_manager.load()
+                groupManager.init()
                 return {
                     'message': 'Group updated !'
                 }, 200

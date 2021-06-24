@@ -4,6 +4,11 @@ from src.config.database import Session
 from src.models.OutputGroup import OutputGroup
 
 
+class GroupManagerError(Exception):
+    def __init__(self, message: str):
+        self.message = message
+
+
 # Manager a single output
 class Output:
     def __init__(self, pin: int, out_id: str):
@@ -34,7 +39,7 @@ class GroupManager:
     def __init__(self, outputs: List[Output]):
         self._outputs = outputs
         self._groups: List[OutputGroup] = []
-        self._current_group_id_on: str = ''
+        self._enableGroup: str or None = None
 
         GPIO.setmode(GPIO.BCM)
         GPIO.setwarnings(False)
@@ -43,62 +48,57 @@ class GroupManager:
             outputs.init()
 
     # Load the group from the database
-    def load(self):
+    def init(self):
         with Session() as session:
-            self._groups = session.query(OutputGroup).all()
+            self._groups: List[OutputGroup] = session.query(OutputGroup).all()
         if len(self._groups) == 0:
             with Session() as session:
                 for output in self._outputs:
                     group = OutputGroup()
-                    group.name = output.id
+                    group.name = f'G-{output.id}'
                     group.output = [output.id]
+                    self._groups.append(group)
                     session.add(group)
                 session.commit()
 
-    # Find a group with his id
-    def _findGroup(self, group_id: int) -> OutputGroup:
+    # Get group with his id
+    def getGroup(self, groupId: int) -> OutputGroup or None:
         for group in self._groups:
-            if group.id == group_id:
+            if group.id == groupId:
                 return group
-        raise Exception('Cannot find the group !')
+        return None
 
-    # Find if the group exist
-    def groupExist(self, groupId: int) -> bool:
-        try:
-            self._findGroup(groupId)
-            return True
-        except:
-            return False
-
-    # Find an output with her id
-    def _findOutput(self, output_id) -> Output:
+    # Get output with her id
+    def getOutput(self, output_id) -> Output or None:
         for output in self._outputs:
             if output.id == output_id:
                 return output
-        raise Exception('Cannot find the output !')
+        return None
 
     # Switch on one of the group
-    def switchOn(self, group_id: int):
-        if group_id == self._current_group_id_on:
+    def switchOn(self, groupIp: int):
+        group: OutputGroup or None = self.getGroup(groupIp)
+        if group is None:
+            raise GroupManagerError('Invalid group id')
+
+        if groupIp == self._enableGroup:
             return
-        self._current_group_id_on = group_id
-        outputs_id = self._findGroup(group_id).outputs_id
+        self._enableGroup = groupIp
+
+        outputsId = group.outputs_id
         for output in self._outputs:
-            if output.id in outputs_id:
-                output.state = True
-            else:
-                output.state = False
+            output.state = output.id in outputsId
 
     # Switch off all the groups
     def switchOff(self):
-        if self._current_group_id_on is None:
+        if self._enableGroup is None:
             return
-        self._current_group_id_on = None
+        self._enableGroup = None
         for output in self._outputs:
             output.state = False
 
 
-group_manager = GroupManager([
+groupManager = GroupManager([
     Output(20, 'out 1'),
     Output(21, 'out 2')
 ])

@@ -3,10 +3,10 @@ from os import getenv
 from dotenv import load_dotenv
 
 import src.models as models
-from src.api import apiHttp
+from src.api import app
 from src.config import DEBUG
-from src.services import operation_state, temp_chart
-from src.utils import display, output, temp
+from src.services import operation_state, temp_chart, display, outManager
+from src.utils import output, temp
 from src.tools.log import logger
 
 
@@ -18,12 +18,13 @@ if __name__ == '__main__':
 
     display.display.init()
 
-    output.group_manager.load()
+    output.groupManager.init()
+    outManager.outManager.init()
 
-    operation_state.operation_sate.load()
+    operation_state.operation_sate.init()
 
-    temp.temp_manager.load()
+    temp.temp_manager.init()
 
-    temp_chart.temp_chart.load()
+    temp_chart.temp_chart.init()
 
-    apiHttp.run(port=getenv('API_PORT'), host=getenv('API_HOST'), debug=DEBUG)
+    app.run(port=getenv('API_PORT'), host=getenv('API_HOST'), debug=DEBUG)

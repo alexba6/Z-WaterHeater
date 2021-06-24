@@ -1,18 +1,21 @@
-from flask import Flask
-from flask_cors import CORS
-from .router import user, auth, token, control, group, temp, setting
+from .router.auth import authRouter
+from .router.control import controlRouter
+from .router.group import groupRouter
+from .router.setting import settingRouter
+from .router.temp import tempRouter
+from .router.token import tokenRouter
+from .router.user import userRouter
 
-apiHttp = Flask(__name__)
-apiHttp.config['DEBUG'] = True
+from .app import app
 
-CORS(apiHttp)
+from .responces import error
 
-apiHttp.config['CORS_HEADERS'] = 'Content-Type'
 
-apiHttp.register_blueprint(user.userRouter)
-apiHttp.register_blueprint(auth.authRouter)
-apiHttp.register_blueprint(token.tokenRouter)
-apiHttp.register_blueprint(control.controlRouter)
-apiHttp.register_blueprint(group.groupRouter)
-apiHttp.register_blueprint(temp.tempRouter)
-apiHttp.register_blueprint(setting.settingRouter)
+app.register_blueprint(authRouter)
+app.register_blueprint(controlRouter)
+app.register_blueprint(groupRouter)
+app.register_blueprint(settingRouter)
+app.register_blueprint(tempRouter)
+app.register_blueprint(tokenRouter)
+app.register_blueprint(userRouter)
+

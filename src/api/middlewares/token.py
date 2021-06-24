@@ -4,7 +4,6 @@ import jwt
 
 from ...config import JWT_KEY, JWT_ALGORITHM
 from ...tools.log import logger
-from ..middlewares.response import make_json_response
 
 
 def check_token(function):
@@ -14,9 +13,9 @@ def check_token(function):
             return function(**kwargs)
         except Exception as error:
             logger.error(error)
-            return make_json_response({
-                'error': 'Invalid token !'
-            }, 498)
+            return {
+                'error': 'INVALID_TOKEN'
+            }, 498
     return wrapper
 
 
@@ -31,7 +30,7 @@ def check_token_date(function):
             return function(**kwargs)
         except Exception as error:
             logger.error(error)
-            return make_json_response({
-                'error': 'Expired token !'
-            }, 498)
+            return {
+                'error': 'EXPIRED_TOKEN'
+            }, 498
     return wrapper

@@ -34,7 +34,7 @@ class TempManager:
         self._sensors: List[ThermSensor] = []
 
     # Init the temp sensors
-    def load(self):
+    def init(self):
         with Session() as session:
             for sensor in session.query(TempSensor).all():
                 self._sensors.append(ThermSensor(
@@ -51,7 +51,7 @@ class TempManager:
                     tSensor.name = f'Sensor @{sensor.id}'
                     session.add(tSensor)
                 session.commit()
-            self.load()
+            self.init()
 
     # Find a sensor with his id
     def getSensorById(self, sensor_id) -> ThermSensor:

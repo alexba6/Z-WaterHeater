@@ -1,16 +1,17 @@
 import datetime
 import threading
-from src.utils.output import group_manager
+from src.utils.output import groupManager
 from .auto import AutoTimeSlot
 
 from ..tools.meta import MetaData
 
-AUTO_MODE, MANUEL_MODE = 'auto', 'manuel'
+AUTO_MODE, ON, OFF = 'auto', 'on', 'off'
 
 
 class OperationState:
     def __init__(self):
         self._mode = AUTO_MODE
+        self._currentGroupOn = None
 
         self._autoCallBackTime: float = 60*60*12
 
@@ -21,8 +22,10 @@ class OperationState:
 
         self._autoTimeSlot = AutoTimeSlot()
 
+        self._autoGroupId = None
+
     # Load the operation state
-    def load(self):
+    def init(self):
         self._autoTimeSlot.load()
         threading.Timer(
             1 - (datetime.datetime.now().microsecond / 10**6),
@@ -59,36 +62,47 @@ class OperationState:
 
         if self._mode != AUTO_MODE:
             return
-        group_id = self._autoTimeSlot.groupToSwitchOn()
-        if group_id:
-            group_manager.switchOn(group_id)
+        self._autoGroupId = self._autoTimeSlot.groupToSwitchOn()
+        if self._autoGroupId:
+            groupManager.switchOn(self._autoGroupId)
         else:
-            group_manager.switchOff()
+            groupManager.switchOff()
 
     # Turn auto mode after a few time
-    def startAutoCallBack(self):
+    def startAutoCallBack(self, mode: str):
         def callback():
-            print('AUTO MODE')
-            self._mode = AUTO_MODE
-        self._mode = MANUEL_MODE
+            if self._autoCallBackTime > 0:
+                self._mode = AUTO_MODE
+                self._currentGroupOn = None
+        self._mode = mode
         self._autoStartTimer = threading.Timer(self._autoCallBackTime, callback)
         self._autoStartTimer.start()
 
     # Switch on a group
     def switchOn(self, group_id: str):
-        self.startAutoCallBack()
-        group_manager.switchOn(group_id)
+        self.startAutoCallBack(ON)
+        self._currentGroupOn = group_id
+        groupManager.switchOn(group_id)
 
     # Switch off a group
     def switchOff(self):
-        self.startAutoCallBack()
-        group_manager.switchOff()
+        self.startAutoCallBack(OFF)
+        self._currentGroupOn = None
+        groupManager.switchOff()
 
     # Switch auto
     def switchAuto(self):
         if self._autoStartTimer and self._autoStartTimer.is_alive():
             self._autoStartTimer.cancel()
+        self._currentGroupOn = None
         self._mode = AUTO_MODE
+
+    # Get the current mode
+    def getMode(self):
+        return {
+            'mode': self._mode,
+            'onGroup': self._currentGroupOn
+        }
 
 
 operation_sate = OperationState()

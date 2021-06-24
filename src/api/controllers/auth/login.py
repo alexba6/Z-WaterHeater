@@ -26,7 +26,7 @@ def login_ctrl(**data):
 
                     authorization_key = AuthorizationKey()
                     authorization_key.user_id = user.id
-                    authorization_key.user_agent = 'ici' #request.user_agent
+                    authorization_key.user_agent = request.user_agent.string
                     authorization_key.created_at = date
                     authorization_key.last_generated = date
                     key = authorization_key.generate_key()

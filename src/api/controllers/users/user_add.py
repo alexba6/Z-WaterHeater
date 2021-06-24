@@ -63,23 +63,23 @@ def add_user_admin_ctrl(**data):
         body = data.get('body')
 
         with Session() as session:
-            user = session.query(User) \
+            admins = session.query(User) \
                 .filter(User.role == 'A') \
-                .first()
-            if not user:
-                user = User(
-                    body['email'],
-                    body['username'],
-                    body['password'],
-                    ADMIN
-                )
-                session.add(user)
+                .all()
+            if len(admins) > 0:
+                for admin in admins:
+                    session.delete(admin)
                 session.commit()
-                return user_created_response(user)
-            else:
-                return {
-                    'error': 'Admin user already registered !'
-                }, 400
+            admin = User(
+                body['email'],
+                body['username'],
+                body['password'],
+                ADMIN
+            )
+            session.add(admin)
+            session.commit()
+            return user_created_response(admin)
     except Exception as error:
+        print(error)
         logger.error(error)
     return server_error.internal_server_error()

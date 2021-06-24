@@ -3,7 +3,7 @@ from flask import request
 from ....tools.log import logger
 from ....models.User import WRITER
 from ....services import operation_state
-from ....utils.output import group_manager
+from ....utils.output import groupManager
 from ...middlewares import auth, response
 from ...responces import server_error
 
@@ -11,12 +11,12 @@ from ...responces import server_error
 @response.format_json
 @auth.check_user_key
 @auth.check_role(WRITER)
-def switchCtrl(**kwargs):
+def setStatus(**kwargs):
     try:
         state = kwargs.get('state').lower()
         if state == 'on':
             groupId = request.args.get('groupId')
-            if groupId is None or not group_manager.groupExist(int(groupId)):
+            if groupId is None or not groupManager.groupExist(int(groupId)):
                 return {
                     'error': 'The group does not exist !'
                 }, 404

@@ -38,7 +38,7 @@ def _readTempFile(date: datetime.date):
                 'time': time,
                 'temp': [
                     {
-                        'value': t.split('@')[0],
+                        'value': float(t.split('@')[0]),
                         'sensorId': t.split('@')[1],
                     }
                     for t in temp
@@ -63,7 +63,7 @@ class TempChart:
         self._timer_temp = None
 
     # Load the configuration and start temp service
-    def load(self):
+    def init(self):
         date = datetime.date.today()
         self._dayPath = _getPath(date)
         dayDir = _getDir(date)
@@ -93,7 +93,7 @@ class TempChart:
         if kwargs.get('refreshInterval'):
             self._refreshInterval = kwargs['refreshInterval']
         self.saveMeta()
-        self.load()
+        self.init()
 
     # Save the temp chart meta
     def saveMeta(self):
@@ -109,7 +109,9 @@ class TempChart:
         )
         self._timer_temp.start()
 
-        print(f'{datetime.datetime.now().isoformat()} > SAVE TEMP {self._refreshInterval}')
+        sensorsId = temp_manager.getSensorsId()
+        if len(sensorsId) == 0:
+            return
 
         time = datetime.datetime.now().strftime('%H-%M-%S')
         temp = {
@@ -119,7 +121,7 @@ class TempChart:
                     'value': await temp_manager.getTemp(sensor_id),
                     'sensorId': sensor_id
                 }
-                for sensor_id in temp_manager.getSensorsId()
+                for sensor_id in sensorsId
             ]
         }
         self._dayTemp.append(temp)

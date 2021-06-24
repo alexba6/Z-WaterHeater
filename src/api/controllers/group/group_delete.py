@@ -3,7 +3,7 @@ from ...responces import server_error
 from ...middlewares import auth, response
 from ....models.User import ADMIN
 from ....models.OutputGroup import OutputGroup
-from src.utils.output import group_manager
+from src.utils.output import groupManager
 from ....config.database import Session
 
 
@@ -18,7 +18,7 @@ def group_delete_ctrl(**kwargs):
             if group:
                 session.delete(group)
                 session.commit()
-                group_manager.load()
+                groupManager.init()
                 return {
                    'message': f"Group {group_id} deleted !"
                 }, 200

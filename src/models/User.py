@@ -14,16 +14,10 @@ class User(BaseEntity):
     username = Column(String(50), nullable=False, unique=False)
     password = Column(String(200), nullable=False)
     role = Column(String(20), nullable=False)
-    last_login = Column(DATETIME(), nullable=False)
-    created_at = Column(DATETIME(), nullable=False)
+    last_login = Column(DATETIME(), nullable=False, default=datetime.datetime.now())
+    created_at = Column(DATETIME(), nullable=False, default=datetime.datetime.now())
 
-    def __init__(self, email=None, username=None, password=None, role=None):
-        date = datetime.datetime.now()
-        self.created_at = date
-        self.last_login = date
-        self.email = email
-        self.username = username
-        self.hash_password(password)
+    def setRole(self, role: str):
         if role and not (role != READER or role != WRITER or role != ADMIN):
             raise Exception('Invalid role !')
         self.role = role

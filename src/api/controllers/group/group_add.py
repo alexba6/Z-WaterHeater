@@ -3,7 +3,7 @@ from ...responces import server_error
 from ...middlewares import format_body, auth, response
 from ....models.User import ADMIN
 from ....models.OutputGroup import OutputGroup
-from src.utils.output import group_manager
+from src.utils.output import groupManager
 from ....config.database import Session
 
 
@@ -22,7 +22,7 @@ def group_add_ctrl(**kwargs):
 
             session.add(group)
             session.commit()
-            group_manager.load()
+            groupManager.init()
 
             return {
                 'message': 'Groups added successfully !'
