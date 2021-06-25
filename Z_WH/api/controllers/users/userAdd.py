@@ -34,7 +34,7 @@ def userResponse(user: User):
             'enum': ['W', 'R']
         }
     },
-    'required': ['email', 'username', 'password']
+    'required': ['email', 'username', 'password', 'role']
 })
 @authentification.checkUserKey(ADMIN)
 def addUserCtrl(**kwargs):
@@ -98,12 +98,12 @@ def addAdminCtrl(**kwargs):
             for admin in admins:
                 session.delete(admin)
             session.commit()
-        admin = User(
-            json['email'],
-            json['username'],
-            json['password'],
-            ADMIN
-        )
+
+        admin = User()
+        admin.email = json['email']
+        admin.username = json['username']
+        admin.hash_password(json['password'])
+        admin.role = ADMIN
         session.add(admin)
         session.commit()
-    return userResponse(admin)
+        return userResponse(admin)

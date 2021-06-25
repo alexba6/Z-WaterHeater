@@ -1,7 +1,9 @@
 from jsonschema.exceptions import ValidationError
 from json.decoder import JSONDecodeError
 
-from Z_WH.api.middlewares.authentification import AuthorizationKeyError, AuthorizationPermissionError
+from Z_WH.api.middlewares.authentification import (
+    AuthorizationKeyError, AuthorizationPermissionError, AuthorizationTokenError
+)
 
 from Z_WH.api.middlewares.response import json
 
@@ -51,3 +53,11 @@ def verificationCodeError(e: VerificationCodeError):
     return {
         'error': e.status
     }, 400
+
+
+@json
+@app.errorhandler(AuthorizationTokenError)
+def verificationCodeError(e: AuthorizationTokenError):
+    return {
+        'error': e.error
+    }, 498

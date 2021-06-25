@@ -26,7 +26,7 @@ userRouter.route(
 
 # Delete user route
 userRouter.route(
-    '/<userId>',
+    '/<id>',
     endpoint='deleteUser',
     methods=['DELETE']
 )(userDelete.delUserCtrl)

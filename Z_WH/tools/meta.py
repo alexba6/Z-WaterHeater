@@ -25,7 +25,7 @@ class MetaData:
     @data.setter
     def data(self, data):
         with open(self.path, 'w', encoding='utf-8') as file:
-            file.write(json.dumps(data))
+            file.write(json.dumps(data, sort_keys=True, indent=3, separators=(',', ': ')))
         self._dataCache = data
 
 

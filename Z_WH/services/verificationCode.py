@@ -34,7 +34,7 @@ class VerificationCode:
         image = Image.new('1', display.displaySize)
 
         draw = ImageDraw.Draw(image)
-        font = ImageFont.truetype('src/assets/font/coolvetica.ttf', 30)
+        font = ImageFont.truetype('Z_WH/assets/font/coolvetica.ttf', 30)
         draw.text((10, 1), f'{self._code}', font=font, fill=255)
 
         display.showImageNow(expiration, image)

@@ -22,15 +22,12 @@ class AsyncW1ThermSensor:
         return t
 
 
-class Unit:
+class Default:
     def __getattr__(self, name):
         def t(*args):
             return None
         return t
 
 
-class Sensor:
-    def __getattr__(self, name):
-        def t(*args):
-            return None
-        return t
+Unit = Default()
+Sensor = Default()

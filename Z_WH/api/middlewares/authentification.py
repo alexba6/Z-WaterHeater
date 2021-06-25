@@ -56,7 +56,7 @@ def checkUserKey(role=WRITER):
                     .first()
                 if user is None:
                     raise AuthorizationPermissionError('INVALID_USER')
-                if user.role != role or user.role != ADMIN:
+                if user.role != role and user.role != ADMIN:
                     raise AuthorizationPermissionError('INVALID_ROLE')
                 kwargs['userId'] = user.id
                 return func(*arg, **kwargs)
@@ -76,7 +76,12 @@ def checkUserToken(func):
             print(error)
 
         now = datetime.datetime.now()
-        tokenExpiration = payload.get('expiration')
+        if payload is None:
+            raise AuthorizationTokenError('INVALID_TOKEN')
+        expiration = payload.get('expiration')
+        if expiration is None:
+            raise AuthorizationTokenError('INVALID_TOKEN')
+        tokenExpiration = datetime.datetime.fromisoformat(expiration)
         if not tokenExpiration:
             raise AuthorizationTokenError('INVALID_TOKEN')
         if now > tokenExpiration:
