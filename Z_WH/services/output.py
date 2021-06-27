@@ -8,7 +8,6 @@ import random
 import string
 
 from Z_WH.tools.meta import MetaData
-from Z_WH.models.TimeSlot import TimeSlot
 from .auto import AutoTimeSlotManager
 from .displaymanager import DisplayManager
 
@@ -204,9 +203,9 @@ class OutputManager:
 
         self._autoStartTime: float = 60*60*12
 
-        self._timeSlots: List[TimeSlot] = []
-
         self._meta = MetaData('out-manager')
+
+        self._autoThread()
 
     def init(self):
         self.loadMeta()
