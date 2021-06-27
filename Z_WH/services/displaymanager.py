@@ -11,7 +11,7 @@ from PIL import ImageFont
 from ..config import APP_ENV, DEV
 
 
-class Display:
+class DisplayManager:
     def __init__(self):
         self._slideImages: List[List[int, object]] = []
         self._slideTimer = threading.Timer(0, lambda: self._changeSlide())
@@ -33,7 +33,7 @@ class Display:
         ImageFont.load_default()
         font = ImageFont.truetype('Z_WH/assets/font/coolvetica.ttf', 32)
         draw.text((30, 0), 'Z-WH', font=font, fill=255)
-        self._slideImages.append([3, lambda: image])
+        self._slideImages.append([2, lambda: image])
 
         self._slideTimer.start()
         if APP_ENV == DEV:
@@ -43,20 +43,11 @@ class Display:
         self._display.display()
 
     # Add defilement slide in the buffer
-    def addSlide(self, duration: int = 2):
-        if duration > 4:
-            raise Exception('Cannot do a slide over 4s')
-
-        def wrapper(fun):
-            def inner(*args, **kwargs):
-                self._slideImages.append([
-                    duration,
-                    lambda: fun(*args, **kwargs)
-                ])
-
-            return inner
-
-        return wrapper
+    def addSlide(self, duration: float = 2, func=None):
+        self._slideImages.append([
+            duration,
+            func
+        ])
 
     # Auto change the slide
     def _changeSlide(self):
@@ -100,6 +91,3 @@ class Display:
             self._slideTimer.cancel()
         if not self._slideTimer.is_alive():
             self._changeSlide()
-
-
-display = Display()

@@ -4,8 +4,9 @@ import threading
 import schedule
 from os import makedirs, path
 import datetime
-from ..utils.temp import temp_manager
-from ..tools.meta import MetaData
+
+from Z_WH.tools.meta import MetaData
+from .tempSensor import TempSensorManager
 
 DATA_DIR = './data/temp'
 
@@ -55,8 +56,9 @@ def _writeTempFile(date: datetime.date, temp):
         file.write(f"{temp['time']}, {', '.join(data)}\n")
 
 
-class TempChart:
-    def __init__(self):
+class TempSaverManager:
+    def __init__(self, tempSensorManager: TempSensorManager):
+        self._tempSensorManager = tempSensorManager
         self._dayTempCache = []
         self._dayTempPath = None
         self._refreshTempIntervalTime = 120
@@ -99,8 +101,6 @@ class TempChart:
 
     # Get the temp chart configuration
     def getConfig(self):
-        if self._meta.data is None:
-            return None
         return {
             'refreshInterval': self._refreshTempIntervalTime
         }
@@ -125,7 +125,7 @@ class TempChart:
         )
         self._saveTempTimer.start()
 
-        sensorsId = temp_manager.getSensorsId()
+        sensorsId = self._tempSensorManager.getSensorsId()
         if len(sensorsId) == 0:
             return
 
@@ -134,10 +134,10 @@ class TempChart:
             'time': time,
             'temp': [
                 {
-                    'value': await temp_manager.getTemp(sensor_id),
-                    'sensorId': sensor_id
+                    'value': await self._tempSensorManager.getTemp(sensorId),
+                    'sensorId': sensorId
                 }
-                for sensor_id in sensorsId
+                for sensorId in sensorsId
             ]
         }
         self._dayTempCache.append(temp)
@@ -148,6 +148,3 @@ class TempChart:
         if date == datetime.date.today():
             return self._dayTempCache
         return _readTempFile(date)
-
-
-temp_chart = TempChart()

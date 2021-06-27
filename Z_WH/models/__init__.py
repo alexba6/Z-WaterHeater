@@ -1,7 +1,7 @@
 from .User import User
 from .AuthorizationKey import AuthorizationKey
 from .TimeSlot import TimeSlot
-from ..config.database import engine
+from Z_WH.config.database import engine
 from .base_entity import BaseEntity
 
 

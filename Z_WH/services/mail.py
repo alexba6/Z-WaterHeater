@@ -4,7 +4,7 @@ import ssl
 from Z_WH.tools.meta import MetaData
 
 
-class MailManager:
+class MailConnexionManager:
     def __init__(self, config_file='smtp-mail'):
         self._host = None
         self._port = None
@@ -68,4 +68,4 @@ class MailManager:
             print(server.sendmail(mail_from, destination, content))
 
 
-mail = MailManager()
+mailManger = Mail()

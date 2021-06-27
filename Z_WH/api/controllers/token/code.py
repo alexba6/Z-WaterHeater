@@ -1,11 +1,11 @@
-from Z_WH.services.verificationCode import verificationCode
+from Z_WH.services import verificationCodeManager
 from Z_WH.api.middlewares import response, schema, authentification
 
 
 @response.json
 def generateCodeCtrl():
     valid_time = 6
-    verificationCode.generateCode(60)
+    verificationCodeManager.generateCode(60)
     return {
         'message': 'Code generated !',
         'validTime': valid_time
@@ -24,7 +24,7 @@ def generateCodeCtrl():
 })
 def checkCodeCtrl(**kwargs):
     json = kwargs.get('json')
-    verificationCode.verifyCode(json['code'])
+    verificationCodeManager.verifyCode(json['code'])
     expirationTime = 60*20
     token = authentification.createToken(expirationTime)
     return {

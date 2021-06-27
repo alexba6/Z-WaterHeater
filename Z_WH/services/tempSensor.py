@@ -33,7 +33,7 @@ class ThermSensor:
         }
 
 
-class TempManager:
+class TempSensorManager:
     def __init__(self):
         self._sensors: List[ThermSensor] = []
 
@@ -129,8 +129,5 @@ class TempManager:
 
     # Get all sensor id
     @classmethod
-    def getSensorsId(cls) -> List[int]:
+    def getSensorsId(cls) -> List[str]:
         return [sensor.id for sensor in AsyncW1ThermSensor.get_available_sensors()]
-
-
-temp_manager = TempManager()

@@ -5,7 +5,7 @@ from jwt import decode, encode, PyJWTError
 from Z_WH.models.User import WRITER, ADMIN, User
 from Z_WH.models.AuthorizationKey import AuthorizationKey
 from Z_WH.config.database import Session
-from Z_WH.config import JWT_KEY, JWT_ALGORITHM
+from Z_WH.config.jwt import JWT_KEY, JWT_ALGORITHM
 
 
 class AuthorizationKeyError(Exception):

@@ -7,7 +7,7 @@ from Z_WH.api.middlewares.authentification import (
 
 from Z_WH.api.middlewares.response import json
 
-from Z_WH.services.verificationCode import VerificationCodeError
+from Z_WH.services.verificationCodeManager import VerificationCodeError
 
 from Z_WH.api.app import app
 

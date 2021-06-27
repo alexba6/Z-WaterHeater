@@ -1,9 +1,19 @@
+import threading
+from PIL import Image
+from PIL import ImageDraw
+from PIL import ImageFont
 from typing import List
 from RPi import GPIO
 import random
 import string
 
 from Z_WH.tools.meta import MetaData
+from Z_WH.models.TimeSlot import TimeSlot
+from .auto import AutoTimeSlotManager
+from .displaymanager import DisplayManager
+
+
+ON, OFF, AUTO = 'on', 'off', 'auto'
 
 
 class GroupManagerError(Exception):
@@ -170,7 +180,115 @@ class GroupManager:
             output.state = False
 
 
-groupManager = GroupManager([
-    Output(20, 'out 1'),
-    Output(21, 'out 2')
-])
+class OutManagerError(Exception):
+    def __init__(self, message: str):
+        self.message = message
+
+
+class OutputManager:
+    def __init__(
+            self,
+            groupManager: GroupManager,
+            displayManager: DisplayManager,
+            autoTimeSlotManager: AutoTimeSlotManager
+    ):
+        self._groupManager = groupManager
+        self._displayManager = displayManager
+        self._autoTimeSlotManager = autoTimeSlotManager
+
+        self.mode: str = AUTO
+        self.enableGroupId: int or None = None
+
+        self._autoCheckTimer = None
+        self._autoStartTimer = None
+
+        self._autoStartTime: float = 60*60*12
+
+        self._timeSlots: List[TimeSlot] = []
+
+        self._meta = MetaData('out-manager')
+
+    def init(self):
+        self.loadMeta()
+
+        def screenCallBack():
+            text = self.mode.upper()
+            if self.enableGroupId:
+                text += ' : ' + self._groupManager.getGroup(self.enableGroupId).name
+            image = Image.new('1', self._displayManager.displaySize)
+            draw = ImageDraw.Draw(image)
+            ImageFont.load_default()
+            font = ImageFont.truetype('Z_WH/assets/font/coolvetica.ttf', 32)
+            draw.text((0, 0), text, font=font, fill=255)
+            return image
+
+        self._displayManager.addSlide(1.5, screenCallBack)
+
+    # Load the meta data
+    def loadMeta(self):
+        if self._meta.data:
+            autoStartTime = self._meta.data.get('autoStartTime')
+            if autoStartTime:
+                self._autoStartTime = autoStartTime
+
+    # Save the meta data
+    def saveMeta(self):
+        self._meta = {
+            'autoStartTime': self._autoStartTime
+        }
+
+    # Get configuration
+    def getConfig(self):
+        return {
+            'autoStartTime': self._autoStartTime
+        }
+
+    # Update the configuration
+    def saveConfig(self, **kwargs):
+        if kwargs.get('autoStartTime'):
+            self._autoStartTime = kwargs['autoStartTime']
+        self.saveMeta()
+
+    # Check the output group for the auto mode
+    def _autoThread(self):
+        self._autoCheckTimer = threading.Timer(1, lambda: self._autoThread())
+        self._autoCheckTimer.start()
+
+        groupIp = self._autoTimeSlotManager.groupEnableNow()
+        if self.enableGroupId == groupIp:
+            return
+        if groupIp:
+            self._groupManager.switchOn(groupIp)
+        else:
+            self._groupManager.switchOff()
+        self.enableGroupId = groupIp
+
+    # Switch the group
+    def switch(self, mode: str, groupId: int = None):
+        if mode == self.mode:
+            return
+        if mode not in [ON, OFF, AUTO]:
+            raise OutManagerError('Invalid mode')
+
+        def stopTimer():
+            if self._autoCheckTimer and self._autoCheckTimer.is_alive():
+                self._autoCheckTimer.cancel()
+            if self._autoStartTime and self._autoStartTimer.is_alive():
+                self._autoStartTimer.cancel()
+
+        if mode == ON:
+            self._groupManager.switchOn(groupId)
+            self.enableGroupId = groupId
+        if mode == OFF:
+            self._groupManager.switchOff()
+            self.enableGroupId = None
+        if mode == AUTO:
+            stopTimer()
+            self._autoThread()
+
+        if mode in [ON, OFF]:
+            stopTimer()
+            self._autoStartTimer = threading.Timer(self._autoStartTime, lambda: self._autoThread())
+            self._autoStartTimer.start()
+
+        self.mode = mode

@@ -78,5 +78,6 @@ class AutoTimeSlotManager:
                     self._timeSlots.pop(i)
                     break
 
-
-autoTimeSlotManager = AutoTimeSlotManager()
+    # Get all time slot
+    def getTimeSlot(self):
+        return self._timeSlots

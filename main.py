@@ -1,4 +1,4 @@
-import Z_WH
+from Z_WH import setup
 
 if __name__ == '__main__':
-    Z_WH.setup()
+    setup()

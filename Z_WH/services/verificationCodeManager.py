@@ -5,7 +5,7 @@ from PIL import Image
 from PIL import ImageDraw
 from PIL import ImageFont
 
-from .display import display
+from .displaymanager import DisplayManager
 
 
 class VerificationCodeError(Exception):
@@ -14,8 +14,10 @@ class VerificationCodeError(Exception):
         self.message = message
 
 
-class VerificationCode:
-    def __init__(self):
+class VerificationCodeManager:
+    def __init__(self, displayManager: DisplayManager):
+        self._displayManager = displayManager
+
         self._code: str or None = None
         self._generatedAt: datetime.datetime or None = None
         self._expirationTime: int or None = None
@@ -31,15 +33,15 @@ class VerificationCode:
         self._generatedAt = datetime.datetime.now()
         self._expirationTime = expiration
 
-        image = Image.new('1', display.displaySize)
+        image = Image.new('1', self._displayManager.displaySize)
 
         draw = ImageDraw.Draw(image)
         font = ImageFont.truetype('Z_WH/assets/font/coolvetica.ttf', 30)
         draw.text((10, 1), f'{self._code}', font=font, fill=255)
 
-        display.showImageNow(expiration, image)
+        self._displayManager.showImageNow(expiration, image)
 
-        self._displayTimer = threading.Timer(expiration, lambda: display.startSlide())
+        self._displayTimer = threading.Timer(expiration, lambda: self._displayManager.startSlide())
         self._displayTimer.start()
 
     def _clearCode(self):
@@ -62,6 +64,3 @@ class VerificationCode:
             raise VerificationCodeError('INVALID_CODE', 'Invalid code')
 
         self._expirationTime = 0
-
-
-verificationCode = VerificationCode()
