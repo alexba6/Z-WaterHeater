@@ -18,6 +18,7 @@ autoTimeSlotManager = AutoTimeSlotManager()
 verificationCodeManager = VerificationCodeManager(displayManager)
 
 groupManager = GroupManager([Output(*availableOutput) for availableOutput in AVAILABLE_OUTPUTS])
+
 outputManager = OutputManager(groupManager, displayManager, autoTimeSlotManager)
 
 

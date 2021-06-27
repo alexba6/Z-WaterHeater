@@ -8,6 +8,9 @@ from Z_WH.api.middlewares.authentification import (
 from Z_WH.api.middlewares.response import json
 
 from Z_WH.services.verificationCodeManager import VerificationCodeError
+from Z_WH.services.auto import AutoTimeSlotManagerError
+from Z_WH.services.output import GroupManagerError
+
 
 from Z_WH.api.app import app
 
@@ -61,3 +64,20 @@ def verificationCodeError(e: AuthorizationTokenError):
     return {
         'error': e.error
     }, 498
+
+
+@json
+@app.errorhandler(AutoTimeSlotManagerError)
+def autoTimeSlotError(e: AutoTimeSlotManagerError):
+    return {
+        'error': e.message,
+        'slotsId': [slot.id for slot in e.timeSlot]
+    }, 400
+
+
+@json
+@app.errorhandler(GroupManagerError)
+def groupManagerError(e: GroupManagerError):
+    return {
+        'error': e.message
+    }, 400

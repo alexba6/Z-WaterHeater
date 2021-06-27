@@ -4,7 +4,7 @@ from Z_WH.api.middlewares import authentification, response, schema
 from Z_WH.models.User import WRITER
 from Z_WH.tools.time import ISO_TIME_PATTERN
 from Z_WH.services import autoTimeSlotManager
-from Z_WH.services.auto import TimeSlot, AutoTimeSlotManagerError
+from Z_WH.services.auto import TimeSlot
 
 
 @response.json
@@ -43,13 +43,7 @@ def addTimeSlotCtrl(**kwargs):
         timeSlot.groupId = dataSlot.get('groupId')
         timeSlots.append(timeSlot)
 
-    try:
-        autoTimeSlotManager.addUpdateTimeSlot(timeSlots)
-    except AutoTimeSlotManagerError as error:
-        return {
-            'error': error.message,
-            'slotsId': [slot.id for slot in error.timeSlot]
-        }, 400
+    autoTimeSlotManager.addUpdateTimeSlot(timeSlots)
 
     return {
         'message': 'Time slot added !',

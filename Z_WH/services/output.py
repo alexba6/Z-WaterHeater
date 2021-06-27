@@ -8,8 +8,8 @@ import random
 import string
 
 from Z_WH.tools.meta import MetaData
-from .auto import AutoTimeSlotManager
 from .displaymanager import DisplayManager
+from .auto import AutoTimeSlotManager
 
 
 ON, OFF, AUTO = 'on', 'off', 'auto'
@@ -97,11 +97,11 @@ class GroupManager:
         ]
 
     # Get group with his id
-    def getGroup(self, groupId: int) -> Group or None:
+    def getGroup(self, groupId: int) -> Group:
         for group in self._groups:
             if group.id == groupId:
                 return group
-        return None
+        raise GroupManagerError('Invalid group id')
 
     # Get output with her id
     def getOutput(self, outputId) -> Output or None:
@@ -151,8 +151,6 @@ class GroupManager:
     # Update group
     def updateGroup(self, groupId: int, outputsId: List[str] = None, name: str = None):
         group = self.getGroup(groupId)
-        if not group:
-            raise GroupManagerError('Group not found !')
         if outputsId:
             self._checkOutputId(outputsId)
             group.outputs = [self.getOutput(outputId) for outputId in outputsId]
@@ -167,8 +165,6 @@ class GroupManager:
     # Switch on one of the group
     def switchOn(self, groupIp: int):
         group: Group or None = self.getGroup(groupIp)
-        if group is None:
-            raise GroupManagerError('Invalid group id')
 
         if groupIp == self._enableGroup:
             return

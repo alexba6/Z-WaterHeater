@@ -1,5 +1,5 @@
 from flask import Blueprint
-from Z_WH.api.controllers.timeSlot import timeSlotAdd, timeSlotUpdate, timeSlotGet
+from Z_WH.api.controllers.timeSlot import timeSlotAdd, timeSlotUpdate, timeSlotGet, timeSlotDelete
 
 timeSlotRouter = Blueprint('timeSlot', __name__, url_prefix='/api/time-slot')
 
@@ -24,3 +24,10 @@ timeSlotRouter.route(
     endpoint='getAllTimeSlot',
     methods=['GET']
 )(timeSlotGet.getTimeSlotCtrl)
+
+# Delete time slots
+timeSlotRouter.route(
+    '/<slotId>',
+    endpoint='deleteTimeSlot',
+    methods=['DELETE']
+)(timeSlotDelete.deleteTimeSlotCtrl)

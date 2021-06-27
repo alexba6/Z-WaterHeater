@@ -1,7 +1,6 @@
 import random
 import string
 import datetime as dt
-import pytz
 from typing import List
 from Z_WH.tools.meta import MetaData
 
@@ -157,7 +156,7 @@ class AutoTimeSlotManager:
     # Delete slot
     def deleteTimeSlot(self, slotId: int):
         for i in range(len(self._timeSlots)):
-            if self._timeSlots[i] == slotId:
+            if self._timeSlots[i].id == slotId:
                 self._timeSlots.pop(i)
                 self.saveMetaTimeSlots()
                 return
