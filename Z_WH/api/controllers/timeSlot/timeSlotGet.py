@@ -8,7 +8,7 @@ def getTimeSlotCtrl(**kwargs):
     return {
         'timeSlots': [{
             'id': timeSlot.id,
-            'groupIp': timeSlot.groupId,
+            'groupIp': timeSlot.id,
             'start': timeSlot.startISO,
             'end': timeSlot.endISO
         } for timeSlot in autoTimeSlotManager.getTimeSlot()]

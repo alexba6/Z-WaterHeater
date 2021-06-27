@@ -48,7 +48,7 @@ class Output:
 
 class Group:
     def __init__(self, groupId: str, outputs: List[Output], name: str):
-        self.groupId: str = groupId
+        self.id: str = groupId
         self.outputs: List[Output] = outputs
         self.name = name
 
@@ -90,7 +90,7 @@ class GroupManager:
     def saveGroupMeta(self):
         self._metaGroups.data = [
             {
-                'id': group.groupId,
+                'id': group.id,
                 'outputsId': [output.id for output in group.outputs],
                 'name': group.name
             } for group in self._groups
@@ -99,7 +99,7 @@ class GroupManager:
     # Get group with his id
     def getGroup(self, groupId: int) -> Group or None:
         for group in self._groups:
-            if group.groupId == groupId:
+            if group.id == groupId:
                 return group
         return None
 
@@ -119,31 +119,34 @@ class GroupManager:
     # Delete group
     def deleteGroup(self, groupId: int):
         for i in range(len(self._groups)):
-            if self._groups[i].groupId == groupId:
+            if self._groups[i].id == groupId:
                 self._groups.pop(i)
                 self.saveGroupMeta()
                 return
         raise GroupManagerError('Group not found !')
 
     # Add group
-    def _addGroup(self, outputs: List[Output], name: str):
-        self._groups.append(Group(
+    def _addGroup(self, outputs: List[Output], name: str) -> Group:
+        group = Group(
             ''.join(map(
                 lambda i: random.choice(string.ascii_uppercase + string.ascii_lowercase + string.digits),
                 range(8)
             )),
             outputs,
             name
-        ))
+        )
+        self._groups.append(group)
+        return group
 
     # Add group with output id
-    def addGroup(self, outputsId: List[str], name: str):
+    def addGroup(self, outputsId: List[str], name: str) -> Group:
         self._checkOutputId(outputsId)
-        self._addGroup(
+        group = self._addGroup(
             [self.getOutput(outputId) for outputId in outputsId],
             name
         )
         self.saveGroupMeta()
+        return group
 
     # Update group
     def updateGroup(self, groupId: int, outputsId: List[str] = None, name: str = None):
@@ -156,6 +159,10 @@ class GroupManager:
         if name:
             group.name = name
         self.saveGroupMeta()
+
+    # Get all the group
+    def getGroups(self):
+        return self._groups
 
     # Switch on one of the group
     def switchOn(self, groupIp: int):
