@@ -1,10 +1,12 @@
 import smtplib
 import ssl
+import threading
+from email.message import EmailMessage
 
 from Z_WH.tools.meta import MetaData
 
 
-class MailConnexionManager:
+class MailManager:
     def __init__(self, config_file='smtp-mail'):
         self._host = None
         self._port = None
@@ -15,10 +17,8 @@ class MailConnexionManager:
 
         self._context = ssl.create_default_context()
 
-        self.load()
-
     # Load the SMTP configuration
-    def load(self):
+    def init(self):
         config = self._meta.data
         if config is not None:
             self._host = config.get('host')
@@ -59,13 +59,17 @@ class MailConnexionManager:
         }
 
     # Send a mail
-    def send(self, mail_from, destination, content):
-        with smtplib.SMTP(self._host, self._port) as server:
-            server.ehlo()
-            server.starttls(context=self._context)
-            server.ehlo()
-            server.login(self._login, self._password)
-            print(server.sendmail(mail_from, destination, content))
+    def send(self, emailMessage: EmailMessage, errorCallback=None):
+        def send():
+            try:
+                server = smtplib.SMTP(self._host, self._port)
+                server.ehlo()
+                server.starttls(context=self._context)
+                server.ehlo()
+                server.login(self._login, self._password)
+                server.send_message(emailMessage)
+            except smtplib.SMTPException as error:
+                if errorCallback:
+                    errorCallback(error)
 
-
-mailManger = Mail()
+        threading.Thread(target=send).start()

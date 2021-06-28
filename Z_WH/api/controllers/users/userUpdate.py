@@ -4,7 +4,7 @@ from Z_WH.services import userManager
 
 
 @response.json
-@authentification.checkUserToken
+@authentification.checkUserKey
 @schema.schemaValidator({
     'type': 'object',
     'properties': {
@@ -14,12 +14,16 @@ from Z_WH.services import userManager
         'password': {
             'type': 'string'
         }
-    },
-    'required': ['email', 'password']
+    }
 })
-def initUser(**kwargs):
+def updateUser(**kwargs):
     json = kwargs.get('json')
-    userManager.initUser(json['email'], json['password'])
+    email = json.get('email')
+    if email:
+        userManager.email = email
+    password = json.get('password')
+    if password:
+        userManager.password = password
     return {
-        'message': 'User added !'
-    }, 201
+        'message': 'User updated !'
+    }, 200

@@ -2,14 +2,15 @@ from jsonschema.exceptions import ValidationError
 from json.decoder import JSONDecodeError
 
 from Z_WH.api.middlewares.authentification import (
-    AuthorizationKeyError, AuthorizationPermissionError, AuthorizationTokenError
+    AuthorizationPermissionError, AuthorizationTokenError
 )
 
 from Z_WH.api.middlewares.response import json
 
 from Z_WH.services.verificationCodeManager import VerificationCodeError
-from Z_WH.services.auto import AutoTimeSlotManagerError
+from Z_WH.services.autoTimeSlot import AutoTimeSlotManagerError
 from Z_WH.services.output import GroupManagerError
+from Z_WH.services.user import UserManagerError
 
 
 from Z_WH.api.app import app
@@ -35,10 +36,10 @@ def jsonDecodeError(e: JSONDecodeError):
 
 
 @json
-@app.errorhandler(AuthorizationKeyError)
-def authKeyError(e: AuthorizationKeyError):
+@app.errorhandler(UserManagerError)
+def authKeyError(e: UserManagerError):
     return {
-        'error': e.error,
+        'error': e.message,
     }, 401
 
 

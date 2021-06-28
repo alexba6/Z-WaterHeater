@@ -1,32 +1,26 @@
 from flask import Blueprint
-from Z_WH.api.controllers.users import userAdd, userReset, userDelete
+from Z_WH.api.controllers.users import userAdd, userUpdate, userGet
 
 userRouter = Blueprint('user', __name__, url_prefix='/api/user')
 
-# Add user route
+# Init the user route
 userRouter.route(
     '',
-    endpoint='addUser',
+    endpoint='initUser',
     methods=['POST']
-)(userAdd.addUserCtrl)
+)(userAdd.initUser)
 
-# Add admin user route
-userRouter.route(
-    '/admin',
-    endpoint='addAdmin',
-    methods=['POST']
-)(userAdd.addAdminCtrl)
 
-# Reset user password route
+# Update user route
 userRouter.route(
-    '/reset-password/<userId>',
-    endpoint='resetUserPassword',
-    methods=['POST']
-)(userReset.resetUserPasswordCtrl)
+    '',
+    endpoint='updateUser',
+    methods=['PUT']
+)(userUpdate.updateUser)
 
-# Delete user route
+# Update user route
 userRouter.route(
-    '/<id>',
-    endpoint='deleteUser',
-    methods=['DELETE']
-)(userDelete.delUserCtrl)
+    '',
+    endpoint='getUser',
+    methods=['GET']
+)(userGet.getUser)

@@ -1,13 +1,13 @@
 from typing import List
 
 from Z_WH.api.middlewares import authentification, response, schema
-from Z_WH.models.User import WRITER
 from Z_WH.tools.time import ISO_TIME_PATTERN
 from Z_WH.services import autoTimeSlotManager, groupManager
-from Z_WH.services.auto import TimeSlot
+from Z_WH.services.autoTimeSlot import TimeSlot
 
 
 @response.json
+@authentification.checkUserKey
 @schema.schemaValidator({
     'type': 'array',
     'minItems': 1,
@@ -34,7 +34,6 @@ from Z_WH.services.auto import TimeSlot
         }
     ]
 })
-@authentification.checkUserKey(WRITER)
 def updateTimeSlotCtrl(**kwargs):
     json = kwargs['json']
     timeSlots: List[TimeSlot] = []

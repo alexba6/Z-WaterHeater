@@ -1,12 +1,11 @@
 
 from Z_WH.api.middlewares import authentification, response, schema
-from Z_WH.models.User import WRITER
 from Z_WH.services import tempSensorManager
 from Z_WH.services.tempSensor import TempSensorManagerError
 
 
 @response.json
-@authentification.checkUserKey(WRITER)
+@authentification.checkUserKey
 @schema.schemaValidator({
     'type': 'object',
     'properties': {

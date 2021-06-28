@@ -1,14 +1,11 @@
-
 from Z_WH.api.middlewares import authentification, response
-from Z_WH.services import tempSensorManager
+
+from Z_WH.services import userManager
 
 
 @response.json
 @authentification.checkUserKey
-def getSensorsCtrl(**kwargs):
+def getUser(**kwargs):
     return {
-        'sensors': tempSensorManager.getSensorsInfo()
+        'email': userManager.email
     }, 200
-
-
-

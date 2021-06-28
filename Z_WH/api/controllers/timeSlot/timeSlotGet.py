@@ -3,7 +3,7 @@ from Z_WH.services import autoTimeSlotManager
 
 
 @response.json
-@authentification.checkUserKey()
+@authentification.checkUserKey
 def getTimeSlotCtrl(**kwargs):
     return {
         'timeSlots': [{

@@ -9,7 +9,7 @@ import string
 
 from Z_WH.tools.meta import MetaData
 from .displaymanager import DisplayManager
-from .auto import AutoTimeSlotManager
+from .autoTimeSlot import AutoTimeSlotManager
 
 
 ON, OFF, AUTO = 'on', 'off', 'auto'
@@ -260,7 +260,11 @@ class OutputManager:
         if self.enableGroupId == groupIp:
             return
         if groupIp:
-            self._groupManager.switchOn(groupIp)
+            try:
+                self._groupManager.switchOn(groupIp)
+            except GroupManagerError as error:
+                self._groupManager.switchOff()
+                self.enableGroupId = None
         else:
             self._groupManager.switchOff()
         self.enableGroupId = groupIp

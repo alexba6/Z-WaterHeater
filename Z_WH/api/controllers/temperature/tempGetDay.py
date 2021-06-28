@@ -1,12 +1,11 @@
 import datetime
 from flask import request
 from Z_WH.api.middlewares import response, authentification
-from Z_WH.models.User import READER
 from Z_WH.services import tempSaverManager
 
 
 @response.json
-@authentification.checkUserKey(READER)
+@authentification.checkUserKey
 def getTempDayCtrl(**kwargs):
     date = datetime.date.today()
     dateArg = request.args.get('date')

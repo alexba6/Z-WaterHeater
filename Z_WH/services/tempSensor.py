@@ -3,6 +3,7 @@ from typing import List
 from w1thermsensor import AsyncW1ThermSensor, Unit, Sensor
 
 from Z_WH.tools.meta import MetaData
+from .notification import NotificationManager, Notification
 
 
 class TempSensorManagerError(Exception):
@@ -40,7 +41,8 @@ class ThermSensor:
 
 
 class TempSensorManager:
-    def __init__(self):
+    def __init__(self, notificationManager: NotificationManager):
+        self._notificationManager = notificationManager
         self._sensors: List[ThermSensor] = []
 
         self._refreshAliveSensorsTimer = None
@@ -76,7 +78,15 @@ class TempSensorManager:
         saveMeta = False
         for currentSensor in self._sensors:
             isAlive = currentSensor.id in aliveSensorsId
+
             if currentSensor.alive != isAlive:
+                notification = Notification()
+                notification.subject = 'Z-WH sondes températures'
+                if not isAlive:
+                    notification.content = f"La sonde {currentSensor.name} est déconnectée !"
+                else:
+                    notification.content = f"Nouvelle sonde de température disponible : {currentSensor.name} !"
+                self._notificationManager.sendNotificationMail(notification)
                 currentSensor.alive = isAlive
                 saveMeta = True
 
