@@ -5,6 +5,11 @@ from w1thermsensor import AsyncW1ThermSensor, Unit, Sensor
 from Z_WH.tools.meta import MetaData
 
 
+class TempSensorManagerError(Exception):
+    def __init__(self, error: str):
+        self.error: str = error
+
+
 class ThermSensor:
     def __init__(self, sensorId: str, name: str, alive: bool, color: str = None):
         self.id = sensorId
@@ -29,7 +34,8 @@ class ThermSensor:
         return {
             'id': self.id,
             'name': self.name,
-            'color': self.color
+            'color': self.color,
+            'alive': self.alive
         }
 
 
@@ -103,16 +109,28 @@ class TempSensorManager:
         for sensor in self._sensors:
             if sensor.id == sensor_id:
                 return sensor
-        raise Exception('Cannot find the sensor !')
+        e = TempSensorManagerError('Cannot find the sensor !')
+        raise e
 
     # Rename a sensor with his id
     def sensorRename(self, sensor_id: str, name: str):
         self.getSensorById(sensor_id).name = name
         self.saveMeta()
 
-    # Change color sensor with his id
+    # Change color sensor with his idœ
     def sensorChangeColor(self, sensor_id: str, color: str):
         self.getSensorById(sensor_id).name = color
+        self.saveMeta()
+
+    # Update the sensor information
+    def sensorUpdate(self, sensorId: str, **kwargs):
+        color = kwargs.get('color')
+        name = kwargs.get('name')
+        sensor = self.getSensorById(sensorId)
+        if color:
+            sensor.color = color
+        if name:
+            sensor.name = name
         self.saveMeta()
 
     # Get the temperature from the sensor by id
@@ -126,6 +144,10 @@ class TempSensorManager:
     # Get the temperature from the sensor cache by id
     def getTempCache(self, sensorId: str) -> float:
         return self.getSensorById(sensorId).getTempCache()
+
+    # Get sensors info
+    def getSensorsInfo(self):
+        return [sensor.getInfo() for sensor in self._sensors]
 
     # Get all sensor id
     @classmethod
