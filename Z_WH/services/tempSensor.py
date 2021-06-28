@@ -119,8 +119,7 @@ class TempSensorManager:
         for sensor in self._sensors:
             if sensor.id == sensor_id:
                 return sensor
-        e = TempSensorManagerError('Cannot find the sensor !')
-        raise e
+        raise TempSensorManagerError('Cannot find the sensor !')
 
     # Rename a sensor with his id
     def sensorRename(self, sensor_id: str, name: str):

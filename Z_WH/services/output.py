@@ -10,7 +10,7 @@ import string
 from Z_WH.tools.meta import MetaData
 from .displaymanager import DisplayManager
 from .autoTimeSlot import AutoTimeSlotManager
-
+from .tempLimit import TempLimitManager
 
 ON, OFF, AUTO = 'on', 'off', 'auto'
 
@@ -97,7 +97,7 @@ class GroupManager:
         ]
 
     # Get group with his id
-    def getGroup(self, groupId: int) -> Group:
+    def getGroup(self, groupId: str) -> Group:
         for group in self._groups:
             if group.id == groupId:
                 return group
@@ -149,7 +149,7 @@ class GroupManager:
         return group
 
     # Update group
-    def updateGroup(self, groupId: int, outputsId: List[str] = None, name: str = None):
+    def updateGroup(self, groupId: str, outputsId: List[str] = None, name: str = None):
         group = self.getGroup(groupId)
         if outputsId:
             self._checkOutputId(outputsId)
@@ -163,11 +163,10 @@ class GroupManager:
         return self._groups
 
     # Switch on one of the group
-    def switchOn(self, groupIp: int):
-        group: Group or None = self.getGroup(groupIp)
-
+    def switchOn(self, groupIp: str):
         if groupIp == self._enableGroup:
             return
+        group: Group or None = self.getGroup(groupIp)
         self._enableGroup = groupIp
 
         for output in self._outputs:
@@ -192,31 +191,30 @@ class OutputManager:
             self,
             groupManager: GroupManager,
             displayManager: DisplayManager,
-            autoTimeSlotManager: AutoTimeSlotManager
+            autoTimeSlotManager: AutoTimeSlotManager,
+            tempLimitManager: TempLimitManager
     ):
         self._groupManager = groupManager
         self._displayManager = displayManager
         self._autoTimeSlotManager = autoTimeSlotManager
+        self._tempLimitManager = tempLimitManager
 
         self.mode: str = AUTO
-        self.enableGroupId: int or None = None
+        self._enableGroupId: str or None = None
 
-        self._autoCheckTimer = None
-        self._autoStartTimer = None
+        self._startTimer = None
 
-        self._autoStartTime: float = 60*60*12
+        self.autoStartTime: float = 60 * 60 * 12
 
         self._meta = MetaData('out-manager')
-
-        self._autoThread()
 
     def init(self):
         self.loadMeta()
 
         def screenCallBack():
             text = self.mode.upper()
-            if self.enableGroupId:
-                text += ' : ' + self._groupManager.getGroup(self.enableGroupId).name
+            if self._enableGroupId:
+                text += ' : ' + self._groupManager.getGroup(self._enableGroupId).name
             image = Image.new('1', self._displayManager.displaySize)
             draw = ImageDraw.Draw(image)
             ImageFont.load_default()
@@ -224,77 +222,80 @@ class OutputManager:
             draw.text((0, 0), text, font=font, fill=255)
             return image
 
+        self._tempLimitManager.changeStateCallback = lambda state: self._onLimitStateChangeCallback()
         self._displayManager.addSlide(1.5, screenCallBack)
+
+        self._checkTimeSlotThread()
 
     # Load the meta data
     def loadMeta(self):
         if self._meta.data:
             autoStartTime = self._meta.data.get('autoStartTime')
             if autoStartTime:
-                self._autoStartTime = autoStartTime
+                self.autoStartTime = autoStartTime
 
     # Save the meta data
     def saveMeta(self):
         self._meta = {
-            'autoStartTime': self._autoStartTime
+            'autoStartTime': self.autoStartTime
         }
 
     # Get configuration
     def getConfig(self):
         return {
-            'autoStartTime': self._autoStartTime
+            'autoStartTime': self.autoStartTime
         }
 
     # Update the configuration
     def saveConfig(self, **kwargs):
         if kwargs.get('autoStartTime'):
-            self._autoStartTime = kwargs['autoStartTime']
+            self.autoStartTime = kwargs['autoStartTime']
         self.saveMeta()
 
-    # Check the output group for the auto mode
-    def _autoThread(self):
-        self._autoCheckTimer = threading.Timer(1, lambda: self._autoThread())
-        self._autoCheckTimer.start()
+    def _onLimitStateChangeCallback(self):
+        self.enableGroupId(self._enableGroupId)
 
-        groupIp = self._autoTimeSlotManager.groupEnableNow()
-        if self.enableGroupId == groupIp:
-            return
-        if groupIp:
-            try:
-                self._groupManager.switchOn(groupIp)
-            except GroupManagerError as error:
-                self._groupManager.switchOff()
-                self.enableGroupId = None
+    def enableGroupId(self, groupId: str or None):
+        if groupId is None or not self._tempLimitManager.isEnable:
+            self._groupManager.switchOff()
         else:
-            self._groupManager.switchOff()
-        self.enableGroupId = groupIp
-
-    # Switch the group
-    def switch(self, mode: str, groupId: int = None):
-        if mode == self.mode:
-            return
-        if mode not in [ON, OFF, AUTO]:
-            raise OutManagerError('Invalid mode')
-
-        def stopTimer():
-            if self._autoCheckTimer and self._autoCheckTimer.is_alive():
-                self._autoCheckTimer.cancel()
-            if self._autoStartTime and self._autoStartTimer.is_alive():
-                self._autoStartTimer.cancel()
-
-        if mode == ON:
             self._groupManager.switchOn(groupId)
-            self.enableGroupId = groupId
-        if mode == OFF:
-            self._groupManager.switchOff()
-            self.enableGroupId = None
-        if mode == AUTO:
-            stopTimer()
-            self._autoThread()
+        self._enableGroupId = groupId
 
-        if mode in [ON, OFF]:
-            stopTimer()
-            self._autoStartTimer = threading.Timer(self._autoStartTime, lambda: self._autoThread())
-            self._autoStartTimer.start()
+    # Check the output group for the auto mode
+    def _checkTimeSlotThread(self):
+        threading. \
+            Timer(1, lambda: self._checkTimeSlotThread()). \
+            start()
 
-        self.mode = mode
+        if self.mode != AUTO:
+            return
+        try:
+            self.enableGroupId(self._autoTimeSlotManager.groupEnableNow())
+        except GroupManagerError:
+            self.enableGroupId(None)
+
+    def _enableAutoStartTimer(self):
+        if self._startTimer and self._startTimer.is_alive():
+            self._startTimer.cancel()
+
+        def callback():
+            self.mode = AUTO
+        self._startTimer = threading.Timer(self.autoStartTime, callback)
+        self._startTimer.start()
+
+    def switchON(self, groupId: str):
+        self.enableGroupId(groupId)
+        self._enableAutoStartTimer()
+        self.mode = ON
+
+    def switchOFF(self):
+        self._groupManager.switchOff()
+        self.enableGroupId(None)
+        self._enableAutoStartTimer()
+        self.mode = OFF
+
+    def switchAUTO(self):
+        if self._startTimer and self._startTimer.is_alive():
+            self._startTimer.cancel()
+        self.mode = AUTO

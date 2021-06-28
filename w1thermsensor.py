@@ -3,7 +3,8 @@ class AsyncW1ThermSensor:
     def __init__(self, sensorType, sensor_id):
         self.type = sensorType
         self.id = sensor_id
-        self._t = 22.7
+        self._t = 55
+        self.a = True
 
     @classmethod
     def get_available_sensors(cls):
@@ -14,6 +15,16 @@ class AsyncW1ThermSensor:
         ]
 
     async def get_temperature(self, unit=None):
+        if self.a:
+            self._t -= 0.5
+        else:
+            self._t += 0.5
+
+        if self._t > 60:
+            self.a = True
+        if self._t < 52:
+            self.a = False
+
         return self._t
 
     def __getattr__(self, name):

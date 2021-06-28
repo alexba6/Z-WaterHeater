@@ -9,6 +9,7 @@ from .verificationCodeManager import VerificationCodeManager
 from .mail import MailManager
 from .notification import NotificationManager
 from .user import UserManager
+from .tempLimit import TempLimitManager
 
 
 mailManager = MailManager()
@@ -21,13 +22,15 @@ displayManager = DisplayManager()
 tempSensorManager = TempSensorManager(notificationManager)
 tempSaverManager = TempSaverManager(tempSensorManager)
 
+tempLimitManager = TempLimitManager(tempSensorManager)
+
 autoTimeSlotManager = AutoTimeSlotManager()
 
 verificationCodeManager = VerificationCodeManager(displayManager)
 
 groupManager = GroupManager([Output(*availableOutput) for availableOutput in AVAILABLE_OUTPUTS])
 
-outputManager = OutputManager(groupManager, displayManager, autoTimeSlotManager)
+outputManager = OutputManager(groupManager, displayManager, autoTimeSlotManager, tempLimitManager)
 
 
 def initAllServices():
@@ -40,6 +43,8 @@ def initAllServices():
 
     tempSensorManager.init()
     tempSaverManager.init()
+
+    tempLimitManager.init()
 
     autoTimeSlotManager.init()
 
