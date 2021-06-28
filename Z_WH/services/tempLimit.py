@@ -37,7 +37,7 @@ class TempLimitManager:
 
     async def _checkIfEnable(self):
         threading \
-            .Timer(30, lambda: asyncio.run(self._checkIfEnable())) \
+            .Timer(60, lambda: asyncio.run(self._checkIfEnable())) \
             .start()
 
         if self._sensorId is None:
@@ -49,7 +49,6 @@ class TempLimitManager:
             return True
         if not self.isEnable:
             temp += self._tempDelta
-        print(f"Update temp: {temp}, limit : {self._limitTemp}, delta : {self._tempDelta} chauffage en marche: {not self.isEnable}")
         isEnable = temp <= self._limitTemp
 
         if self.isEnable != isEnable and self.changeStateCallback:

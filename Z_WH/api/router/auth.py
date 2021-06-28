@@ -25,6 +25,27 @@ authRouter.route(
     methods=['POST']
 )(key.checkKeyCtrl)
 
+# Get key info
+authRouter.route(
+    '/key',
+    endpoint='getKeyInfo',
+    methods=['GET']
+)(key.getUserLogKeyInfoCtrl)
+
+# Delete key
+authRouter.route(
+    '/key/<id>',
+    endpoint='deleteKey',
+    methods=['DELETE']
+)(key.deleteKeyCtrl)
+
+# Delete all key
+authRouter.route(
+    '/key',
+    endpoint='deleteAllKey',
+    methods=['DELETE']
+)(key.deleteAllKeyCtrl)
+
 # Logout user route
 authRouter.route(
     '/logout',

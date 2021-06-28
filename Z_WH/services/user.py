@@ -186,3 +186,12 @@ class UserManager:
     def deleteAllKey(self):
         self._logKeys = []
         self._saveMetaLogKey()
+
+    def getLogKeysInfo(self):
+        return [{
+            'id': logKey.id,
+            'userAgent': logKey.userAgent,
+            'ip': logKey.ip,
+            'createdAt': logKey.createdAt,
+            'lastGenerated': logKey.lastGenerated
+        } for logKey in self._logKeys]
