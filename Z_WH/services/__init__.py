@@ -22,7 +22,7 @@ displayManager = DisplayManager()
 tempSensorManager = TempSensorManager(notificationManager)
 tempSaverManager = TempSaverManager(tempSensorManager)
 
-tempLimitManager = TempLimitManager(tempSensorManager)
+tempLimitManager = TempLimitManager(tempSensorManager, notificationManager, userManager)
 
 autoTimeSlotManager = AutoTimeSlotManager()
 
