@@ -8,7 +8,7 @@ import random
 import string
 
 from Z_WH.tools.meta import MetaData
-from .displaymanager import DisplayManager
+from .displaymanager import DisplayManager, Slide, DISPLAY_SIZE
 from .autoTimeSlot import AutoTimeSlotManager
 from .tempLimit import TempLimitManager
 
@@ -208,24 +208,29 @@ class OutputManager:
 
         self._meta = MetaData('out-manager')
 
+        self._slide: Slide = Slide(duration=1.5)
+        self._slide.newId()
+
     def init(self):
         self.loadMeta()
-
-        def screenCallBack():
-            text = self.mode.upper()
-            if self._enableGroupId:
-                text += ' : ' + self._groupManager.getGroup(self._enableGroupId).name
-            image = Image.new('1', self._displayManager.displaySize)
-            draw = ImageDraw.Draw(image)
-            ImageFont.load_default()
-            font = ImageFont.truetype('Z_WH/assets/font/coolvetica.ttf', 32)
-            draw.text((0, 0), text, font=font, fill=255)
-            return image
-
         self._tempLimitManager.changeStateCallback = lambda state: self._onLimitStateChangeCallback()
-        self._displayManager.addSlide(1.5, screenCallBack)
-
         self._checkTimeSlotThread()
+        self._displayManager.addSlide(self._slide)
+
+    def _reloadScreen(self):
+        text = 'Off'
+        if self._enableGroupId:
+            text = self._groupManager.getGroup(self._enableGroupId).name
+        image = Image.new('1', DISPLAY_SIZE)
+        draw = ImageDraw.Draw(image)
+        ImageFont.load_default()
+        draw.text(
+            ((DISPLAY_SIZE[0] / 2) - ((len(text) * 9) / 2), 3),
+            text,
+            font=ImageFont.truetype('Z_WH/assets/font/coolvetica.ttf', 20),
+            fill=255
+        )
+        self._slide.image = image
 
     # Load the meta data
     def loadMeta(self):
@@ -256,6 +261,7 @@ class OutputManager:
         self.enableGroupId(self._enableGroupId)
 
     def enableGroupId(self, groupId: str or None):
+        self._reloadScreen()
         if groupId is None or not self._tempLimitManager.isEnable:
             self._groupManager.switchOff()
         else:

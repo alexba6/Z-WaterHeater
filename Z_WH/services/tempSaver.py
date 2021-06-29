@@ -1,4 +1,3 @@
-import asyncio
 import csv
 import threading
 import schedule
@@ -75,7 +74,7 @@ class TempSaverManager:
         self._dayTempCache = _readTempFile(datetime.date.today())
 
         schedule.every(1).day.at('00:00:00').do(lambda: self.loadDayPath())
-        asyncio.run(self.saveTemps())
+        self.saveTemps()
 
     # Load the day temp path
     def loadDayPath(self):
@@ -118,14 +117,14 @@ class TempSaverManager:
         }
 
     # Save the temperature in CSV each x seconds
-    async def saveTemps(self):
+    def saveTemps(self):
         self._saveTempTimer = threading.Timer(
             self._refreshTempIntervalTime,
-            lambda: asyncio.run(self.saveTemps())
+            lambda: self.saveTemps()
         )
         self._saveTempTimer.start()
 
-        sensorsId = self._tempSensorManager.getSensorsId()
+        sensorsId = self._tempSensorManager.getAliveSensorsId()
         if len(sensorsId) == 0:
             return
 
@@ -134,7 +133,7 @@ class TempSaverManager:
             'time': time,
             'temp': [
                 {
-                    'value': await self._tempSensorManager.getTemp(sensorId),
+                    'value': self._tempSensorManager.getTemp(sensorId),
                     'sensorId': sensorId
                 }
                 for sensorId in sensorsId

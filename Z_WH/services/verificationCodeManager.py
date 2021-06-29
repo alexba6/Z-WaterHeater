@@ -5,7 +5,7 @@ from PIL import Image
 from PIL import ImageDraw
 from PIL import ImageFont
 
-from .displaymanager import DisplayManager
+from .displaymanager import DisplayManager, DISPLAY_SIZE
 
 
 class VerificationCodeError(Exception):
@@ -33,11 +33,14 @@ class VerificationCodeManager:
         self._generatedAt = datetime.datetime.now()
         self._expirationTime = expiration
 
-        image = Image.new('1', self._displayManager.displaySize)
-
+        image = Image.new('1', DISPLAY_SIZE)
         draw = ImageDraw.Draw(image)
-        font = ImageFont.truetype('Z_WH/assets/font/coolvetica.ttf', 30)
-        draw.text((10, 1), f'{self._code}', font=font, fill=255)
+        draw.text(
+            (25, 0),
+            f'{self._code}',
+            font=ImageFont.truetype('Z_WH/assets/font/coolvetica.ttf', 26),
+            fill=255
+        )
 
         self._displayManager.showImageNow(expiration, image)
 

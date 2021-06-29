@@ -12,18 +12,26 @@ from Z_WH.services.tempSensor import TempSensorManagerError
         'name': {
             'type': 'string',
             'minLength': 2,
-            'maxLength': 8
+            'maxLength': 6
         },
         'color': {
             'type': 'string',
             'pattern': '^#([a-fA-F0-9]{6}|[a-fA-F0-9]{3})$'
+        },
+        'displayOnScreen': {
+            'type': 'boolean'
         }
     }
 })
 def updateTempSensorCtrl(**kwargs):
     json = kwargs['json']
     try:
-        tempSensorManager.sensorUpdate(kwargs['sensorId'], name=json.get('name'), color=json.get('color'))
+        tempSensorManager.sensorUpdate(
+            kwargs['sensorId'],
+            name=json.get('name'),
+            color=json.get('color'),
+            displayOnScreen=json.get('displayOnScreen')
+        )
     except TempSensorManagerError as e:
         return {
             'error': e.error

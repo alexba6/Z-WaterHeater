@@ -1,10 +1,10 @@
-
 class AsyncW1ThermSensor:
     def __init__(self, sensorType, sensor_id):
         self.type = sensorType
         self.id = sensor_id
         self._t = 55
         self.a = True
+        self.c = 0
 
     @classmethod
     def get_available_sensors(cls):
@@ -38,6 +38,11 @@ class Default:
         def t(*args):
             return None
         return t
+
+
+class W1ThermSensorError(Exception):
+    def __init__(self):
+        pass
 
 
 Unit = Default()

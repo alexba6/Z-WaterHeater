@@ -127,29 +127,23 @@ class AutoTimeSlotManager:
 
     # Check and update or add the time slots
     def addUpdateTimeSlot(self, newSlots: List[TimeSlot]):
-
         checkSlots = newSlots.copy()
-
         for currentSlot in self._timeSlots:
             if currentSlot.id not in [slot.id for slot in newSlots if slot.id]:
                 checkSlots.append(currentSlot)
-
         checkSlots.sort(key=lambda slot: slot.start)
-
         for i in range(len(checkSlots)):
             checkSlot = checkSlots[i]
             if checkSlot.start >= checkSlot.end:
                 error = AutoTimeSlotManagerError('START_END_INVALID')
                 error.timeSlot = [checkSlot]
                 raise error
-
             if i > 0:
                 previousSlot = checkSlots[i - 1]
                 if previousSlot.end >= checkSlot.start:
                     error = AutoTimeSlotManagerError('SLOT_MISS_MATCH')
                     error.timeSlot = [previousSlot, checkSlot]
                     raise error
-
         self._timeSlots = checkSlots
         self.saveMetaTimeSlots()
 

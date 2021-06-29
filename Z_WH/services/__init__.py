@@ -19,7 +19,7 @@ userManager = UserManager(notificationManager)
 
 displayManager = DisplayManager()
 
-tempSensorManager = TempSensorManager(notificationManager)
+tempSensorManager = TempSensorManager(notificationManager, displayManager, userManager)
 tempSaverManager = TempSaverManager(tempSensorManager)
 
 tempLimitManager = TempLimitManager(tempSensorManager, notificationManager, userManager)
