@@ -316,6 +316,7 @@ class OutputManager:
         self.returnAutoDt = datetime.datetime.now() + datetime.timedelta(seconds=self.autoStartTime)
 
     def switchON(self, groupId: str):
+        self._groupManager.getGroup(groupId)
         self.enableGroupId(groupId)
         self._enableAutoStartTimer()
         self.mode = ON
