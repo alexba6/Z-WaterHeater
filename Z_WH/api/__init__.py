@@ -6,6 +6,7 @@ from .router.outGroup import outGroupRouter
 from .router.temperature import temperatureRouter
 from .router.tempSensor import tempSensorRouter
 from .router.settings import settingsRouter
+from .router.control import controlRouter
 
 from .app import app
 
@@ -20,3 +21,4 @@ app.register_blueprint(outGroupRouter)
 app.register_blueprint(temperatureRouter)
 app.register_blueprint(tempSensorRouter)
 app.register_blueprint(settingsRouter)
+app.register_blueprint(controlRouter)
