@@ -11,7 +11,10 @@ from Z_WH.tools.meta import MetaData
 from .notification import NotificationManager, Notification
 from .displaymanager import DisplayManager, Slide, DISPLAY_SIZE
 from .user import UserManager
-from Z_WH.tools.log import logger
+from Z_WH.tools.log import Logger
+
+logger = Logger('temp-sensor', 'temp')
+
 
 (
     ERROR_SENSOR_NOT_FOUND,
@@ -37,48 +40,29 @@ class ThermSensor:
         self.color: str or None = kwargs.get('color')
         self.displayOnScreen: bool = True if kwargs.get('displayOnScreen') is None else kwargs.get('displayOnScreen')
 
-        self._sensor: AsyncW1ThermSensor or None = None
         self._temp: float = 0
         self.lastGettingTemp: datetime.datetime or None = None
         self.slide: Slide = Slide(duration=2)
-        self._reloadTempThread: threading.Timer or None = None
-        self.onOutOfOrderCallback = None
 
     def init(self):
         self.slide.newId()
-
-    def start(self):
-        if self._reloadTempThread and not self._reloadTempThread.is_alive():
-            self._reloadTempThread()
         self.flushSlide()
 
-    def stop(self):
-        if self._reloadTempThread and self._reloadTempThread.is_alive():
-            self._reloadTempThread.canncel()
-
-    def reload(self):
-        self.stop()
-        self.start()
-
     # Reload the temperature
-    async def _reloadTemp(self):
-        timer = 2 if self.alive else 4
-        self._reloadTempThread = threading\
-            .Timer(timer, lambda: asyncio.run(self._reloadTemp()))\
-            .start()
+    async def refreshTemp(self):
         try:
-            temp = round(await self._sensor.get_temperature(Unit.DEGREES_C), 2)
+            sensor = AsyncW1ThermSensor(Sensor.DS18B20, self.id)
+            temp = round(await sensor.get_temperature(Unit.DEGREES_C), 2)
+            self.alive = True
             if self._temp != temp:
+                logger.temp(f'Sensor with id {sensor.id} is at {temp}°C')
                 self.flushSlide()
             self._temp = temp
             self.lastGettingTemp = datetime.datetime.now()
         except W1ThermSensorError:
+            self.alive = False
             if self.alive:
                 self.slide.enable = False
-                logger.error(f"Temp sensor @{self.id} out of order")
-                if self.onOutOfOrderCallback:
-                    self.onOutOfOrderCallback()
-            self.alive = False
 
     # Get the temperature
     def getTemp(self) -> float:
@@ -120,14 +104,16 @@ class TempSensorManager:
 
         self._sensors: List[ThermSensor] = []
 
-        self._refreshSensorsThread = None
+        self._refreshAliveSensorThread = None
+        self._refreshTempSensorThread = None
 
         self._metaSensors = MetaData('temp-sensor')
 
     # Init the temp sensors
     def init(self):
         self._loadMetaSensors()
-        asyncio.run(self._refreshSensors())
+        self._refreshAliveSensor()
+        asyncio.run(self._refreshTempSensor())
 
     # Load the sensors from meta
     def _loadMetaSensors(self):
@@ -136,25 +122,18 @@ class TempSensorManager:
             for metaSensor in metaSensors:
                 sensor = ThermSensor(**metaSensor)
                 sensor.init()
-                sensor.start()
-                sensor.onOutOfOrderCallback = lambda: self._outOfOrderCallback(sensor)
+                if sensor.displayOnScreen and sensor.alive:
+                    self._displayManager.addSlide(sensor.slide)
                 self._sensors.append(sensor)
-
-    def _outOfOrderCallback(self, sensor: Sensor):
-        notification = Notification()
-        notification.subject = 'Z-WH sondes températures'
-        notification.content = f"La sonde de température {sensor.name} a été déconnectée !"
-        notification.email = self._userManager.email
-        self._notificationManager.sendNotificationMail(notification)
 
     # Save the meta data
     def _saveMetaSensors(self):
         self._metaSensors.data = [sensor.getInfo() for sensor in self._sensors]
 
     # Refresh temperature and alive sensor each 2 seconds
-    async def _refreshSensors(self):
-        self._refreshSensorsThread = threading \
-            .Timer(5, lambda: asyncio.run(self._refreshSensors())) \
+    def _refreshAliveSensor(self):
+        self._refreshAliveSensorThread = threading \
+            .Timer(5, lambda: self._refreshAliveSensor()) \
             .start()
 
         mustSaveMeta = False
@@ -162,14 +141,44 @@ class TempSensorManager:
             try:
                 self.getSensorById(aliveSensor.id)
             except TempSensorManagerError:
-                self._sensors.append(ThermSensor(
+                sensor = ThermSensor(
                     id=aliveSensor.id,
                     name=f"@{aliveSensor.id[:5]}",
                     alive=True,
                     displayOnScreen=True
-                ))
+                )
+                logger.info(f"New sensor detected with id {sensor.id}")
+                sensor.init()
+                self._sensors.append(sensor)
+                if sensor.displayOnScreen and sensor.alive:
+                    self._displayManager.addSlide(sensor.slide)
                 mustSaveMeta = True
         if mustSaveMeta:
+            self._saveMetaSensors()
+
+    async def _refreshTempSensor(self):
+        self._refreshTempSensorThread = threading\
+            .Timer(2, lambda: asyncio.run(self._refreshTempSensor()))\
+            .start()
+
+        saveMeta = False
+        for sensor in self._sensors:
+            wasAlive = sensor.alive
+            await sensor.refreshTemp()
+            if wasAlive != sensor.alive:
+                saveMeta = True
+                notification = Notification()
+                notification.subject = 'Z-WH sondes températures'
+                if sensor.alive:
+                    logger.info(f"Sensor with id {sensor.id} reconnect")
+                    notification.content = f"La sonde de température {sensor.name} a été reconnectée !"
+                else:
+                    logger.warning(f"Sensor with id {sensor.id} is out of order")
+                    notification.content = f"La sonde de température {sensor.name} a été déconnectée !"
+                notification.email = self._userManager.email
+                self._notificationManager.sendNotificationMail(notification)
+
+        if saveMeta:
             self._saveMetaSensors()
 
     # Find a sensor with his id

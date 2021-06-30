@@ -5,6 +5,9 @@ from .tempSensor import TempSensorManager, TempSensorManagerError
 from .notification import Notification, NotificationManager
 from .user import UserManager
 from Z_WH.tools.meta import MetaData
+from Z_WH.tools.log import Logger
+
+logger = Logger('temp-limit')
 
 
 class TempLimitManager:
@@ -71,7 +74,7 @@ class TempLimitManager:
             self.isEnable = True
             return
         try:
-            temp = await self._tempManager.getTemp(self._sensorId)
+            temp = self._tempManager.getTemp(self._sensorId)
         except TempSensorManagerError:
             return True
         if not self.isEnable:
@@ -79,6 +82,7 @@ class TempLimitManager:
         isEnable = temp <= self._limitTemp
         if self.isEnable != isEnable and self.changeStateCallback:
             if isEnable:
+                logger.info('temp limit achieved')
                 self.sendTempAchievedNotification()
             self.changeStateCallback(isEnable)
         self.isEnable = isEnable

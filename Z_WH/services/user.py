@@ -6,6 +6,10 @@ from Z_WH.tools.meta import MetaData
 from Z_WH.services.notification import NotificationManager, Notification
 from Z_WH.tools.randomString import getRandomString
 
+from Z_WH.tools.log import Logger
+
+logger = Logger('user')
+
 
 class UserManagerError(Exception):
     def __init__(self, message: str):
@@ -107,6 +111,7 @@ class UserManager:
         notification.subject = 'Compte initialisé'
         notification.content = 'Le compte sur l\'appareil Z-WaterHeater a bien été reinitialisé !'
         notification.email = self._email
+        logger.info(f"User init with email {self._email}")
         self._notificationManager.sendNotificationMail(notification)
 
     @property
@@ -122,6 +127,7 @@ class UserManager:
         notification.subject = 'Mot de passe changé'
         notification.content = """Le mot de passe de l'appareil Z-WaterHeater a été changé. S'il ne s'agit pas de 
         vous, veuillez tout de suite réinitialiser l'appareil ! """
+        logger.info("User change his password")
         self._notificationManager.sendNotificationMail(notification)
 
     @property
@@ -137,6 +143,7 @@ class UserManager:
         notification.subject = 'Email changé'
         notification.content = f"""L'email l'appareil Z-WaterHeater a été changé par {newEmail}. S'il ne s'agit pas de 
         vous, veuillez tout de suite réinitialiser l'appareil ! """
+        logger.info("User change his email")
         self._notificationManager.sendNotificationMail(notification)
 
     def login(self, email: str, password: str, userAgent: str or None = None, ip: str or None = None) -> LogKey:
@@ -158,6 +165,7 @@ class UserManager:
         content += f"\n Depuis {ip} ."
         content += f"\nConnexion le {date.strftime('%d-%m-%y')} à {date.strftime('%H:%M:%S')}."
         notification.content = content
+        logger.info("User new login")
         self._notificationManager.sendNotificationMail(notification)
 
         return logKey
@@ -173,17 +181,20 @@ class UserManager:
         logKey = self._findKeyById(keyId)
         logKey.regenerate()
         self._saveMetaLogKey()
+        logger.info(f'Renew keyid {keyId}')
         return logKey
 
     def deleteKey(self, keyId: str):
         for i in range(len(self._logKeys)):
             if self._logKeys[i].id == keyId:
+                logger.info(f'Delete keyid {keyId}')
                 self._logKeys.pop(i)
                 self._saveMetaLogKey()
                 return
         raise UserManagerError('KEY_NOT_FOUND')
 
     def deleteAllKey(self):
+        logger.info('Delete all key')
         self._logKeys = []
         self._saveMetaLogKey()
 

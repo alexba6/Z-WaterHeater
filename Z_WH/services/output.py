@@ -11,8 +11,12 @@ from Z_WH.tools.meta import MetaData
 from .displaymanager import DisplayManager, Slide, DISPLAY_SIZE
 from .autoTimeSlot import AutoTimeSlotManager
 from .tempLimit import TempLimitManager
+from Z_WH.tools.log import Logger
 
 ON, OFF, AUTO = 'on', 'off', 'auto'
+
+outputLogger = Logger('output')
+groupLogger = Logger('output')
 
 
 class GroupManagerError(Exception):
@@ -41,6 +45,7 @@ class Output:
     @state.setter
     def state(self, state: bool) -> None:
         if self.__state != state:
+            outputLogger.info(f"Relay {self.pin} is {state}")
             print(f"> Relay {self.pin} is {state}")
             GPIO.setup(self.pin, GPIO.LOW if state else GPIO.HIGH)
             self.__state = state
@@ -120,6 +125,7 @@ class GroupManager:
     def deleteGroup(self, groupId: int):
         for i in range(len(self._groups)):
             if self._groups[i].id == groupId:
+                groupLogger.info(f"Group {groupId} deleted")
                 self._groups.pop(i)
                 self.saveGroupMeta()
                 return
@@ -145,6 +151,7 @@ class GroupManager:
             [self.getOutput(outputId) for outputId in outputsId],
             name
         )
+        groupLogger.info(f"Group {group.id} added")
         self.saveGroupMeta()
         return group
 
@@ -156,6 +163,7 @@ class GroupManager:
             group.outputs = [self.getOutput(outputId) for outputId in outputsId]
         if name:
             group.name = name
+        groupLogger.info(f"Group {group.id} updated")
         self.saveGroupMeta()
 
     # Get all the group

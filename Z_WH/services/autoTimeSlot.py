@@ -3,16 +3,21 @@ import string
 import datetime as dt
 from typing import List
 from Z_WH.tools.meta import MetaData
+from Z_WH.tools.log import Logger
+
+logger = Logger('timeSlot')
 
 
 class AutoTimeSlotManagerError(Exception):
     def __init__(self, message: str):
+        logger.error(message)
         self.message: str = message
         self.timeSlot: List[TimeSlot] = []
 
 
 class TimeSlotError(Exception):
     def __init__(self, message: str):
+        logger.error(message)
         self.message = message
 
 
@@ -144,6 +149,7 @@ class AutoTimeSlotManager:
                     error = AutoTimeSlotManagerError('SLOT_MISS_MATCH')
                     error.timeSlot = [previousSlot, checkSlot]
                     raise error
+        logger.info("Time slots updated")
         self._timeSlots = checkSlots
         self.saveMetaTimeSlots()
 
@@ -151,6 +157,7 @@ class AutoTimeSlotManager:
     def deleteTimeSlot(self, slotId: int):
         for i in range(len(self._timeSlots)):
             if self._timeSlots[i].id == slotId:
+                logger.info("Time slots deleted")
                 self._timeSlots.pop(i)
                 self.saveMetaTimeSlots()
                 return

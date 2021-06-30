@@ -8,14 +8,7 @@ from Z_WH.services import userManager
 from Z_WH.services.user import UserManagerError
 
 
-
 class AuthorizationTokenError(Exception):
-    def __init__(self, error: str, message: str = None):
-        self.error: str = error
-        self.message: str = message
-
-
-class AuthorizationPermissionError(Exception):
     def __init__(self, error: str, message: str = None):
         self.error: str = error
         self.message: str = message

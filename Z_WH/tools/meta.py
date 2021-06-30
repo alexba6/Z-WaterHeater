@@ -1,9 +1,11 @@
 from os import path, makedirs
 import json
 
-from .log import logger
+from .log import Logger
 
 METADATA_PATH = './data/meta'
+
+logger = Logger('meta-data')
 
 
 class MetaData:
@@ -16,7 +18,7 @@ class MetaData:
                 with open(self.path, 'r', encoding='utf-8') as file:
                     self._dataCache = json.load(file)
             except Exception as error:
-                logger.error(error)
+                logger.error(error.args)
 
     @property
     def data(self):

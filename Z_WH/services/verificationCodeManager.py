@@ -60,7 +60,7 @@ class VerificationCodeManager:
             self._expirationTime = 0
             raise VerificationCodeError('TOO_MANY_ATTEMPT', 'Too many attempt')
 
-        if (date-self._generatedAt).total_seconds() > self._expirationTime:
+        if self._generatedAt is None or (date-self._generatedAt).total_seconds() > self._expirationTime:
             raise VerificationCodeError('EXPIRED_CODE', 'Expired code')
 
         if code != self._code:

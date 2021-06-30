@@ -1,35 +1,28 @@
-from typing import List
 from os import path, makedirs
 import datetime
 
+LOG_DIR = './data/log'
+
+if not path.exists(LOG_DIR):
+    makedirs(LOG_DIR, exist_ok=True)
+
 
 class Logger:
-    def __init__(self, log_dir: str, allow_logger: List[str]):
-        self.log_dir = log_dir
-        self.allow_logger = allow_logger
-        self.start()
-
-    def start(self):
-        if not path.exists(self.log_dir):
-            makedirs(self.log_dir, exist_ok=True)
+    def __init__(self, logFileName: str, *allowLoggers: str):
+        self.logPath = path.join(LOG_DIR, f'{logFileName}.log')
+        self.allowLogger = ['error', 'info', 'warning']
+        for allowLogger in allowLoggers:
+            self.allowLogger.append(allowLogger)
 
     def __getattr__(self, item):
-        log_type = str(item).lower()
-
-        if log_type not in self.allow_logger:
+        logType = str(item).lower()
+        if logType not in self.allowLogger:
             raise Exception('Cannot write this type of log !')
 
         def write_log(message):
             message = str(message)
-            log_path = path.join(self.log_dir, f'{log_type}.log')
-            with open(log_path, 'a', encoding='utf-8') as log_file:
+            with open(self.logPath, 'a', encoding='utf-8') as logFile:
                 date = datetime.datetime.now().strftime("%m-%d-%Y %H:%M:%S")
-                log_file.write(f"[{date}] - {message}\n")
+                logFile.write(f"[{date}] - {logType.upper()} - {message}\n")
 
         return write_log
-
-
-logger = Logger(
-    './data/log',
-    ['error', 'warning', 'info', 'auth']
-)
