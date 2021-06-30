@@ -1,3 +1,4 @@
+import datetime
 import threading
 from PIL import Image
 from PIL import ImageDraw
@@ -219,6 +220,8 @@ class OutputManager:
         self._slide: Slide = Slide(duration=1.5)
         self._slide.newId()
 
+        self.returnAutoDt: datetime.datetime = datetime.datetime.now()
+
     def init(self):
         self.loadMeta()
         self._tempLimitManager.changeStateCallback = lambda state: self._onLimitStateChangeCallback()
@@ -310,6 +313,7 @@ class OutputManager:
             self.mode = AUTO
         self._startTimer = threading.Timer(self.autoStartTime, callback)
         self._startTimer.start()
+        self.returnAutoDt = datetime.datetime.now() + datetime.timedelta(seconds=self.autoStartTime)
 
     def switchON(self, groupId: str):
         self.enableGroupId(groupId)
@@ -326,3 +330,11 @@ class OutputManager:
         if self._startTimer and self._startTimer.is_alive():
             self._startTimer.cancel()
         self.mode = AUTO
+
+    def getInfoControl(self):
+        data = dict()
+        data['mode'] = self.mode
+        data['enableGroupId'] = self._enableGroupId
+        if self.mode != AUTO and self.returnAutoDt:
+            data['returnAutoIn'] = (self.returnAutoDt-datetime.datetime.now()).total_seconds()
+        return data
