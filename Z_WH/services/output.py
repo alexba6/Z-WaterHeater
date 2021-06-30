@@ -248,22 +248,35 @@ class OutputManager:
                 self.autoStartTime = autoStartTime
 
     # Save the meta data
-    def saveMeta(self):
-        self._meta = {
+    def _saveMeta(self):
+        self._meta.data = {
             'autoStartTime': self.autoStartTime
         }
 
     # Get configuration
-    def getConfig(self):
+    def getSettings(self):
         return {
             'autoStartTime': self.autoStartTime
         }
 
+    @classmethod
+    def getSettingsSchema(cls):
+        return {
+            'type': 'object',
+            'properties': {
+                'autoStartTime': {
+                    'type': 'number',
+                    'minimum': 0,
+                    'maximum': 60*60*24
+                }
+            }
+        }
+
     # Update the configuration
-    def saveConfig(self, **kwargs):
+    def updateSettings(self, **kwargs):
         if kwargs.get('autoStartTime'):
             self.autoStartTime = kwargs['autoStartTime']
-        self.saveMeta()
+        self._saveMeta()
 
     def _onLimitStateChangeCallback(self):
         self.enableGroupId(self._enableGroupId)

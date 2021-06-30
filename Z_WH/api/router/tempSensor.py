@@ -15,5 +15,5 @@ tempSensorRouter.route(
 tempSensorRouter.route(
     '/<sensorId>',
     endpoint='updateSensor',
-    methods=['POST']
+    methods=['PUT']
 )(tempSensorUpdate.updateTempSensorCtrl)

@@ -27,7 +27,7 @@ class MailManager:
             self._password = config.get('password')
 
     # Save new SMTP configuration
-    def saveConfig(self, **kwargs):
+    def updateSettings(self, **kwargs):
         if kwargs.get('host'):
             self._host = kwargs['host']
         if kwargs.get('port'):
@@ -37,10 +37,30 @@ class MailManager:
         if kwargs.get('password'):
             self._password = kwargs['password']
 
-        self.saveMeta()
+        self._saveMetaData()
+
+    @classmethod
+    def getSettingsSchema(cls):
+        return {
+            'type': 'object',
+            'properties': {
+                'host': {
+                    'type': 'string'
+                },
+                'port': {
+                    'type': 'number'
+                },
+                'login': {
+                    'type': 'string'
+                },
+                'password': {
+                    'type': 'string'
+                }
+            }
+        }
 
     # Get the SMTP configuration
-    def getConfig(self):
+    def getSettings(self):
         if self._meta.data is None:
             return None
         return {
@@ -50,7 +70,7 @@ class MailManager:
         }
 
     # Save the SMTP configuration in the meta
-    def saveMeta(self):
+    def _saveMetaData(self):
         self._meta.data = {
             'host': self._host,
             'port': self._port,

@@ -63,11 +63,11 @@ class TempSaverManager:
         self._refreshTempIntervalTime = 120
         self._saveTempTimer = None
 
-        self._meta = MetaData('temp-chart')
+        self._meta = MetaData('temp-saver')
 
     # Load the configuration and start temp service
     def init(self):
-        self.loadMeta()
+        self._loadMetaData()
         self.loadDayPath()
 
         # Init the day cache at start
@@ -75,6 +75,21 @@ class TempSaverManager:
 
         schedule.every(1).day.at('00:00:00').do(lambda: self.loadDayPath())
         self.saveTemps()
+
+    # Load the temp meta data
+    def _loadMetaData(self):
+        if self._meta.data is None:
+            self._meta.data = {
+                'refreshInterval': self._refreshTempIntervalTime
+            }
+        else:
+            self._refreshTempIntervalTime = self._meta.data.get('refreshInterval')
+
+    # Save the temp chart meta
+    def _saveMetaData(self):
+        self._meta.data = {
+            'refreshInterval': self._refreshTempIntervalTime
+        }
 
     # Load the day temp path
     def loadDayPath(self):
@@ -89,31 +104,29 @@ class TempSaverManager:
         # Clear the day cache
         self._dayTempCache.clear()
 
-    # Load the temp meta data
-    def loadMeta(self):
-        if self._meta.data is None:
-            self._meta.data = {
-                'refreshInterval': self._refreshTempIntervalTime
-            }
-        else:
-            self._refreshTempIntervalTime = self._meta.data.get('refreshInterval')
-
     # Get the temp chart configuration
-    def getConfig(self):
+    def getSettings(self):
         return {
             'refreshInterval': self._refreshTempIntervalTime
         }
 
     # set the temp chart configuration
-    def saveConfig(self, **kwargs):
+    def updateSettings(self, **kwargs):
         if kwargs.get('refreshInterval'):
             self._refreshTempIntervalTime = kwargs['refreshInterval']
-        self.saveMeta()
+        self._saveMetaData()
 
-    # Save the temp chart meta
-    def saveMeta(self):
-        self._meta.data = {
-            'refreshInterval': self._refreshTempIntervalTime
+    @classmethod
+    def getSettingsSchema(cls):
+        return {
+            'type': 'object',
+            'properties': {
+                'refreshInterval': {
+                    'type': 'number',
+                    'minimum': 30,
+                    'maximum': 3600
+                }
+            }
         }
 
     # Save the temperature in CSV each x seconds

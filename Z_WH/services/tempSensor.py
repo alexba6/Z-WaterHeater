@@ -200,8 +200,11 @@ class TempSensorManager:
             assert len(name) <= 6, TempSensorManagerError('Name must be 6 length max !')
             sensor.name = name
         if displayOnScreen is not None:
+            if not displayOnScreen:
+                sensor.slide.enable = False
+            elif sensor.alive:
+                self._displayManager.addSlide(sensor.slide)
             sensor.displayOnScreen = displayOnScreen
-
         if color or name or displayOnScreen:
             self._saveMetaSensors()
 

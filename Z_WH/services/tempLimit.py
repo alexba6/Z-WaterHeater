@@ -22,7 +22,7 @@ class TempLimitManager:
         self._tempManager = tempManager
         self._meta = MetaData('temp-limit')
         self._sensorId: str or None = None
-        self._limitTemp: float = 60
+        self._tempLimit: float = 60
         self._tempDelta: float = 5
 
         self.isEnable: bool = False
@@ -33,27 +33,71 @@ class TempLimitManager:
         self.changeStateCallback = None
 
     def init(self):
-        self.loadMeta()
+        self._loadMeta()
 
         def callback():
             self._alreadySendNotification = False
         schedule.every(1).day.at('00:00:00').do(lambda: callback())
         asyncio.run(self._checkIfEnable())
 
-    def loadMeta(self):
+    def _loadMeta(self):
         meta = self._meta.data
         if meta:
             self._sensorId = meta['sensorId']
             self._tempDelta = meta['tempDelta']
-            self._limitTemp = meta['limitTemp']
+            self._tempLimit = meta['tempLimit']
             self._sendNotification = meta['sendNotification']
 
-    def saveMeta(self):
+    def _saveMeta(self):
         self._meta.data = {
             'sensorId': self._sensorId,
             'tempDelta': self._tempDelta,
-            'limitTemp': self._limitTemp,
+            'tempLimit': self._tempLimit,
             'sendNotification': self._sendNotification
+        }
+
+    def getSettings(self):
+        return {
+            'sensorId': self._sensorId,
+            'tempDelta': self._tempDelta,
+            'tempLimit': self._tempLimit,
+            'sendNotification': self._sendNotification
+        }
+
+    def updateSettings(self, **kwargs):
+        if kwargs.get('sensorId'):
+            self._tempManager.getSensorById(kwargs['sensorId'])
+            self._sensorId = kwargs['sensorId']
+        if kwargs.get('tempDelta'):
+            self._tempDelta = kwargs['tempDelta']
+        if kwargs.get('tempLimit'):
+            self._tempLimit = kwargs['tempLimit']
+        if kwargs.get('sendNotification'):
+            self._sendNotification = kwargs['sendNotification']
+        self._saveMeta()
+
+    @classmethod
+    def getSettingsSchema(cls):
+        return {
+            'type': 'object',
+            'properties': {
+                'sensorId': {
+                    'type': 'string'
+                },
+                'tempDelta': {
+                    'type': 'number',
+                    'minimum': 2,
+                    'maximum': 20
+                },
+                'limitTemp': {
+                    'type': 'number',
+                    'minimum': 0,
+                    'maximum': 100
+                },
+                'sendNotification': {
+                    'type': 'boolean'
+                }
+            }
         }
 
     def sendTempAchievedNotification(self):
@@ -61,7 +105,7 @@ class TempLimitManager:
             notification = Notification()
             notification.email = self._userManager.email
             notification.subject = 'Température limite atteinte'
-            notification.content = f"La température limite de {self._limitTemp}°C a été atteinte !"
+            notification.content = f"La température limite de {self._tempLimit}°C a été atteinte !"
             self._notificationManager.sendNotificationMail(notification)
             self._alreadySendNotification = True
 
@@ -79,7 +123,7 @@ class TempLimitManager:
             return True
         if not self.isEnable:
             temp += self._tempDelta
-        isEnable = temp <= self._limitTemp
+        isEnable = temp <= self._tempLimit
         if self.isEnable != isEnable and self.changeStateCallback:
             if isEnable:
                 logger.info('temp limit achieved')
